@@ -7,6 +7,7 @@ Almost Magic Tech Lab
 """
 
 from flask import Flask, jsonify
+from mobile_ui import MOBILE_HTML
 import logging
 from config import *
 
@@ -277,7 +278,12 @@ def create_app():
             "status": "/api/status",
             "briefing": "/api/morning-briefing",
             "voice": "/api/morning-briefing/voice",
+            "mobile": "/mobile",
         })
+
+    @app.route("/mobile", methods=["GET"])
+    def mobile_ui():
+        return MOBILE_HTML
 
     return app
 
