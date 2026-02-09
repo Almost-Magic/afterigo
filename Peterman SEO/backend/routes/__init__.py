@@ -2,3 +2,12 @@ from .health import health_bp
 from .brands import brands_bp
 from .perception import perception_bp
 from .browser import browser_bp
+from .semantic import semantic_bp
+from .vectormap import vectormap_bp
+from .authority import authority_bp
+from .survivability import survivability_bp
+from .machine import machine_bp
+from .amplifier import amplifier_bp
+from .proof import proof_bp
+from .oracle import oracle_bp
+from .forge import forge_bp

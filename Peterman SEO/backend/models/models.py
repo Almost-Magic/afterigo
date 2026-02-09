@@ -356,3 +356,225 @@ class ShareOfVoice(db.Model):
             "position": self.position,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+# ============================================================
+# CHAMBER 4: AUTHORITY ENGINE
+# ============================================================
+
+class AuthorityResult(db.Model):
+    """SERP authority analysis for a brand keyword."""
+    __tablename__ = "authority_results"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    scan_id = db.Column(db.Integer, db.ForeignKey("scans.id"))
+    keyword = db.Column(db.String(512), nullable=False)
+    brand_position = db.Column(db.Integer)
+    in_top_3 = db.Column(db.Boolean, default=False)
+    in_top_10 = db.Column(db.Boolean, default=False)
+    competitors_above = db.Column(db.JSON, default=list)
+    total_results = db.Column(db.Integer, default=0)
+    authority_score = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id, "keyword": self.keyword,
+            "brand_position": self.brand_position, "in_top_3": self.in_top_3,
+            "in_top_10": self.in_top_10, "competitors_above": self.competitors_above,
+            "total_results": self.total_results, "authority_score": self.authority_score,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 5: SURVIVABILITY LAB
+# ============================================================
+
+class SurvivabilityResult(db.Model):
+    """Content preservation test result."""
+    __tablename__ = "survivability_results"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    scan_id = db.Column(db.Integer, db.ForeignKey("scans.id"))
+    model = db.Column(db.String(100), nullable=False)
+    content_type = db.Column(db.String(100))  # tagline | value_prop | description | fact
+    original_content = db.Column(db.Text, nullable=False)
+    llm_recall = db.Column(db.Text)
+    recall_accuracy = db.Column(db.Float)  # 0-100
+    preserved = db.Column(db.Boolean, default=False)
+    distortion_notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id, "model": self.model,
+            "content_type": self.content_type, "original_content": self.original_content,
+            "llm_recall": self.llm_recall, "recall_accuracy": self.recall_accuracy,
+            "preserved": self.preserved, "distortion_notes": self.distortion_notes,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 6: MACHINE INTERFACE
+# ============================================================
+
+class TechnicalAudit(db.Model):
+    """Technical SEO audit result for a brand's domain."""
+    __tablename__ = "technical_audits"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    scan_id = db.Column(db.Integer, db.ForeignKey("scans.id"))
+    domain = db.Column(db.String(512), nullable=False)
+    has_jsonld = db.Column(db.Boolean, default=False)
+    has_opengraph = db.Column(db.Boolean, default=False)
+    has_sitemap = db.Column(db.Boolean, default=False)
+    has_robots = db.Column(db.Boolean, default=False)
+    schema_types = db.Column(db.JSON, default=list)
+    issues = db.Column(db.JSON, default=list)
+    score = db.Column(db.Float)  # 0-100
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id, "domain": self.domain,
+            "has_jsonld": self.has_jsonld, "has_opengraph": self.has_opengraph,
+            "has_sitemap": self.has_sitemap, "has_robots": self.has_robots,
+            "schema_types": self.schema_types, "issues": self.issues,
+            "score": self.score,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 7: AMPLIFIER
+# ============================================================
+
+class CitationResult(db.Model):
+    """Citation probability and competitor shadow analysis."""
+    __tablename__ = "citation_results"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    scan_id = db.Column(db.Integer, db.ForeignKey("scans.id"))
+    model = db.Column(db.String(100), nullable=False)
+    query = db.Column(db.Text)
+    brand_cited = db.Column(db.Boolean, default=False)
+    citation_context = db.Column(db.Text)
+    competitors_cited = db.Column(db.JSON, default=list)
+    citation_score = db.Column(db.Float)  # 0-100
+    shadow_brands = db.Column(db.JSON, default=list)
+    recommendations = db.Column(db.JSON, default=list)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id, "model": self.model,
+            "query": self.query, "brand_cited": self.brand_cited,
+            "citation_context": self.citation_context,
+            "competitors_cited": self.competitors_cited,
+            "citation_score": self.citation_score,
+            "shadow_brands": self.shadow_brands,
+            "recommendations": self.recommendations,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 8: THE PROOF
+# ============================================================
+
+class VisitorLead(db.Model):
+    """Identified website visitor / lead."""
+    __tablename__ = "visitor_leads"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    company_name = db.Column(db.String(255))
+    company_domain = db.Column(db.String(512))
+    industry = db.Column(db.String(255))
+    employee_count = db.Column(db.String(100))
+    location = db.Column(db.String(255))
+    pages_viewed = db.Column(db.JSON, default=list)
+    visit_count = db.Column(db.Integer, default=1)
+    lead_score = db.Column(db.Integer, default=0)
+    lead_tier = db.Column(db.String(50))  # hot | warm | cool
+    score_reasons = db.Column(db.JSON, default=list)
+    first_visit = db.Column(db.DateTime)
+    last_visit = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id,
+            "company_name": self.company_name, "company_domain": self.company_domain,
+            "industry": self.industry, "employee_count": self.employee_count,
+            "location": self.location, "pages_viewed": self.pages_viewed,
+            "visit_count": self.visit_count, "lead_score": self.lead_score,
+            "lead_tier": self.lead_tier, "score_reasons": self.score_reasons,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 9: THE ORACLE
+# ============================================================
+
+class TrendSignal(db.Model):
+    """Industry trend or opportunity signal."""
+    __tablename__ = "trend_signals"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    scan_id = db.Column(db.Integer, db.ForeignKey("scans.id"))
+    signal_type = db.Column(db.String(100))  # trend | opportunity | threat | shift
+    title = db.Column(db.String(512), nullable=False)
+    summary = db.Column(db.Text)
+    source_url = db.Column(db.String(1024))
+    relevance_score = db.Column(db.Float)  # 0-100
+    urgency = db.Column(db.String(50))  # low | medium | high | critical
+    recommendation = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id,
+            "signal_type": self.signal_type, "title": self.title,
+            "summary": self.summary, "source_url": self.source_url,
+            "relevance_score": self.relevance_score, "urgency": self.urgency,
+            "recommendation": self.recommendation,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ============================================================
+# CHAMBER 10: THE FORGE
+# ============================================================
+
+class ContentBrief(db.Model):
+    """Generated content brief from perception gaps."""
+    __tablename__ = "content_briefs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
+    title = db.Column(db.String(512), nullable=False)
+    brief_type = db.Column(db.String(100))  # blog | social | faq | whitepaper | correction
+    target_keyword = db.Column(db.String(512))
+    gap_source = db.Column(db.String(100))  # perception | authority | survivability | oracle
+    outline = db.Column(db.JSON, default=list)
+    generated_content = db.Column(db.Text)
+    status = db.Column(db.String(50), default="draft")  # draft | approved | published | rejected
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id, "brand_id": self.brand_id, "title": self.title,
+            "brief_type": self.brief_type, "target_keyword": self.target_keyword,
+            "gap_source": self.gap_source, "outline": self.outline,
+            "generated_content": self.generated_content, "status": self.status,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

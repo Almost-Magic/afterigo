@@ -150,6 +150,17 @@ body {
 }
 
 .nav-item svg { flex-shrink: 0; }
+.nav-item b { color: var(--gold); font-size: 11px; min-width: 14px; display: inline-block; text-align: center; }
+
+.nav-section {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 12px 12px 4px;
+    opacity: 0.6;
+}
 
 .sidebar-footer {
     padding: 12px 16px;

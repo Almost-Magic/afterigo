@@ -37,12 +37,25 @@ def create_app(config_name=None):
     CORS(app)
     db.init_app(app)
 
-    # Register blueprints
-    from backend.routes import health_bp, brands_bp, perception_bp, browser_bp
+    # Register blueprints — all 10 chambers
+    from backend.routes import (
+        health_bp, brands_bp, perception_bp, browser_bp,
+        semantic_bp, vectormap_bp, authority_bp, survivability_bp,
+        machine_bp, amplifier_bp, proof_bp, oracle_bp, forge_bp,
+    )
     app.register_blueprint(health_bp)
     app.register_blueprint(brands_bp)
     app.register_blueprint(perception_bp)
     app.register_blueprint(browser_bp)
+    app.register_blueprint(semantic_bp)        # Chamber 2
+    app.register_blueprint(vectormap_bp)       # Chamber 3
+    app.register_blueprint(authority_bp)       # Chamber 4
+    app.register_blueprint(survivability_bp)   # Chamber 5
+    app.register_blueprint(machine_bp)         # Chamber 6
+    app.register_blueprint(amplifier_bp)       # Chamber 7
+    app.register_blueprint(proof_bp)           # Chamber 8
+    app.register_blueprint(oracle_bp)          # Chamber 9
+    app.register_blueprint(forge_bp)           # Chamber 10
 
     # Serve frontend
     @app.route("/")
