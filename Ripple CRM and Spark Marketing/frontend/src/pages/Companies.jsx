@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { MagnifyingGlassIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { api } from '../lib/api';
+import { useDebounce } from '../lib/useDebounce';
 import Modal from '../components/Modal';
 import { toast } from '../components/Toast';
 
@@ -55,12 +56,13 @@ export default function Companies() {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const debouncedSearch = useDebounce(search, 300);
 
   const fetchCompanies = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page, page_size: 50 });
-      if (search) params.set('search', search);
+      if (debouncedSearch) params.set('search', debouncedSearch);
       const data = await api.get(`/companies?${params}`);
       setCompanies(data.items);
       setTotal(data.total);
@@ -69,7 +71,7 @@ export default function Companies() {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [debouncedSearch, page]);
 
   useEffect(() => { fetchCompanies(); }, [fetchCompanies]);
 

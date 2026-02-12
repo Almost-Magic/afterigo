@@ -158,8 +158,13 @@ export default function Deals() {
 
       {loading ? (
         <div className="text-text-muted text-sm py-8 text-center">Loading pipeline...</div>
+      ) : deals.length === 0 ? (
+        <div className="text-center py-12 text-text-secondary">
+          <p className="text-lg mb-2">No deals yet</p>
+          <p className="text-sm">Create your first deal to start tracking your pipeline.</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-6 gap-3 min-h-[60vh]">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 min-h-[40vh] lg:min-h-[60vh]">
           {STAGES.map((stage) => {
             const stageDeals = deals.filter((d) => d.stage === stage.key);
             const stageValue = stageDeals.reduce((s, d) => s + (d.value || 0), 0);
