@@ -1,0 +1,120 @@
+app: Ripple CRM
+description: Relationship Intelligence Engine
+port: 8100
+frontend_port: 3100
+url: http://localhost:8100
+frontend_url: http://localhost:3100
+category: ck
+priority: high
+
+features:
+  - id: health_endpoint
+    name: Health endpoint responds
+    check: http_get
+    path: /api/health
+    expected_status: 200
+    expected_contains: healthy
+
+  - id: frontend_loads
+    name: Frontend loads
+    check: http_get
+    url: http://localhost:3100
+    expected_status: 200
+
+  - id: contacts_crud
+    name: Contact CRUD
+    check: http_get
+    path: /api/contacts
+    expected_status: 200
+    expected_contains: items
+
+  - id: companies_crud
+    name: Company CRUD
+    check: http_get
+    path: /api/companies
+    expected_status: 200
+    expected_contains: items
+
+  - id: deals_crud
+    name: Deal CRUD
+    check: http_get
+    path: /api/deals
+    expected_status: 200
+    expected_contains: items
+
+  - id: interactions_list
+    name: Interactions list
+    check: http_get
+    path: /api/interactions
+    expected_status: 200
+    expected_contains: items
+
+  - id: tasks_list
+    name: Tasks list
+    check: http_get
+    path: /api/tasks
+    expected_status: 200
+    expected_contains: items
+
+  - id: commitments_list
+    name: Commitments list
+    check: http_get
+    path: /api/commitments
+    expected_status: 200
+    expected_contains: items
+
+  - id: dashboard
+    name: Daily Command Centre
+    check: http_get
+    path: /api/dashboard
+    expected_status: 200
+    expected_contains: metrics
+
+  - id: relationship_health
+    name: Relationship health recalculate
+    check: http_post
+    path: /api/relationships/recalculate
+    expected_status: 200
+    expected_contains: count
+
+  - id: privacy_consents
+    name: Privacy consent list
+    check: http_get
+    path: /api/privacy/consents
+    expected_status: 200
+    expected_contains: items
+
+  - id: settings
+    name: Settings endpoint
+    check: http_get
+    path: /api/settings
+    expected_status: 200
+    expected_contains: user_name
+
+  - id: export_contacts
+    name: CSV export contacts
+    check: http_get
+    path: /api/import-export/export/contacts
+    expected_status: 200
+
+  - id: validation
+    name: Input validation endpoint
+    check: http_post
+    path: /api/validate
+    body: '{"email": "test@example.com"}'
+    expected_status: 200
+    expected_contains: valid
+
+  - id: notes_list
+    name: Notes list
+    check: http_get
+    path: /api/notes
+    expected_status: 200
+    expected_contains: items
+
+  - id: audit_log
+    name: Audit log accessible
+    check: http_get
+    path: /api/audit-log
+    expected_status: 200
+    timeout: 5

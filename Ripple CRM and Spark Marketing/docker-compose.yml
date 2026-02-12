@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8100:8100"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:peterman2026@host.docker.internal:5433/ripple
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - SUPERVISOR_URL=http://host.docker.internal:9000
+      - APP_PORT=8100
+      - CORS_ORIGINS=http://localhost:3100
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3100:3100"
+    depends_on:
+      - backend

@@ -133,6 +133,32 @@ services:
     depends_on: [ollama]
     on_demand: true
 
+  ripple-crm:
+    name: "Ripple CRM"
+    port: 8100
+    type: python
+    health_check:
+      type: http
+      url: "http://localhost:8100/api/health"
+      interval_seconds: 60
+    start_command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8100"
+    cwd: "Ripple CRM and Spark Marketing/backend"
+    depends_on: []
+    on_demand: true
+
+  ripple-frontend:
+    name: "Ripple CRM Frontend"
+    port: 3100
+    type: node
+    health_check:
+      type: http
+      url: "http://localhost:3100/"
+      interval_seconds: 60
+    start_command: "npx vite --host 0.0.0.0 --port 3100"
+    cwd: "Ripple CRM and Spark Marketing/frontend"
+    depends_on: [ripple-crm]
+    on_demand: true
+
   foreperson:
     name: "The Foreperson"
     port: 9100

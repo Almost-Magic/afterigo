@@ -1,0 +1,13 @@
+{
+  "user_name": "Mani Padisetti",
+  "user_email": "mani@almostmagic.tech",
+  "theme": "dark",
+  "currency": "AUD",
+  "health_weights": {
+    "recency": 30,
+    "frequency": 25,
+    "sentiment": 20,
+    "commitment": 15,
+    "response": 10
+  }
+}

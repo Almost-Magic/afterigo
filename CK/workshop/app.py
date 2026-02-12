@@ -7,6 +7,7 @@ import os
 import json
 import time
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from flask import Flask, render_template, jsonify, send_from_directory
 import httpx
@@ -52,6 +53,8 @@ SERVICES = {
     'junk-drawer-api':    {'name': 'Junk Drawer API',     'port': 5006,  'url': 'http://localhost:5006',  'type': 'infra', 'path': os.path.join(CK_BASE, 'Junk Drawer file management system', 'junk-drawer-backend'), 'cmd': 'launch-elaine.bat'},
     'comfyui':            {'name': 'ComfyUI Studio',      'port': 8188,  'url': 'http://localhost:8188',  'type': 'ck',    'path': None, 'cmd': None},
     'genie':              {'name': 'Genie',               'port': 8000,  'url': 'http://localhost:8000',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Finance App', 'Genie', 'backend'), 'cmd': 'python -m uvicorn app:app --host 0.0.0.0 --port 8000', 'health': '/api/health'},
+    'ripple':             {'name': 'Ripple CRM',          'port': 3100,  'url': 'http://localhost:3100',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Ripple CRM and Spark Marketing', 'frontend'), 'cmd': 'npx vite --host 0.0.0.0 --port 3100', 'health': '/'},
+    'ripple-api':         {'name': 'Ripple CRM API',      'port': 8100,  'url': 'http://localhost:8100',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Ripple CRM and Spark Marketing', 'backend'), 'cmd': 'python -m uvicorn app.main:app --host 0.0.0.0 --port 8100', 'health': '/api/health'},
 
     # Infrastructure â€” Docker services (start via docker start)
     'ollama':             {'name': 'Ollama',              'port': 11434, 'url': 'http://localhost:11434', 'type': 'infra', 'health': '/api/tags', 'docker': None, 'cmd': 'ollama serve'},
@@ -125,21 +128,26 @@ def list_services():
 
 @app.route('/api/services/health')
 def services_health():
-    """Check health of all registered services."""
+    """Check health of all registered services (parallel)."""
     results = {}
     live_count = 0
     total = len(SERVICES)
 
-    for sid, svc in SERVICES.items():
-        is_up = check_service(sid, svc)
-        results[sid] = {
-            'name': svc['name'],
-            'port': svc['port'],
-            'type': svc['type'],
-            'status': 'live' if is_up else 'stopped',
-        }
-        if is_up:
-            live_count += 1
+    def _check(sid_svc):
+        sid, svc = sid_svc
+        return sid, svc, check_service(sid, svc)
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        futures = pool.map(_check, SERVICES.items())
+        for sid, svc, is_up in futures:
+            results[sid] = {
+                'name': svc['name'],
+                'port': svc['port'],
+                'type': svc['type'],
+                'status': 'live' if is_up else 'stopped',
+            }
+            if is_up:
+                live_count += 1
 
     return jsonify({
         'timestamp': datetime.utcnow().isoformat(),
