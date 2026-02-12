@@ -1,0 +1,10 @@
+{
+  "id": "ripple",
+  "name": "Ripple CRM",
+  "desc": "Relationship Intelligence Engine",
+  "url": "http://localhost:3100",
+  "healthUrl": "http://localhost:8100/api/health",
+  "port": 3100,
+  "accent": "#38bdf8",
+  "letter": "R"
+}

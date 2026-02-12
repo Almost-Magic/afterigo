@@ -1,0 +1,27 @@
+{
+  "name": "amtl-desktop-apps",
+  "version": "1.0.0",
+  "description": "AMTL Desktop App Wrappers -- Electron shells for all CK tools",
+  "private": true,
+  "scripts": {
+    "generate": "node generate-apps.js",
+    "start:elaine": "electron shared/main.js --config=apps/elaine/config.json",
+    "start:workshop": "electron shared/main.js --config=apps/workshop/config.json",
+    "start:ripple": "electron shared/main.js --config=apps/ripple/config.json",
+    "start:touchstone": "electron shared/main.js --config=apps/touchstone/config.json",
+    "start:writer": "electron shared/main.js --config=apps/writer/config.json",
+    "start:learning": "electron shared/main.js --config=apps/learning/config.json",
+    "start:peterman": "electron shared/main.js --config=apps/peterman/config.json",
+    "start:genie": "electron shared/main.js --config=apps/genie/config.json",
+    "start:costanza": "electron shared/main.js --config=apps/costanza/config.json",
+    "start:author-studio": "electron shared/main.js --config=apps/author-studio/config.json",
+    "start:junk-drawer": "electron shared/main.js --config=apps/junk-drawer/config.json",
+    "start:supervisor": "electron shared/main.js --config=apps/supervisor/config.json"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary"
+}

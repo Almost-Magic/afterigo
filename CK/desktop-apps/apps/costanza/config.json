@@ -1,0 +1,10 @@
+{
+  "id": "costanza",
+  "name": "Costanza",
+  "desc": "Mental Models Engine",
+  "url": "http://localhost:5001",
+  "healthUrl": "http://localhost:5001/api/health",
+  "port": 5001,
+  "accent": "#a78bfa",
+  "letter": "C"
+}

@@ -1,0 +1,38 @@
+{
+  "name": "amtl-junk-drawer",
+  "version": "1.0.0",
+  "description": "Junk Drawer -- Cognitive File Intelligence (AMTL Desktop)",
+  "main": "../../shared/main.js",
+  "scripts": {
+    "start": "electron ../../shared/main.js --config=./config.json",
+    "build": "electron-builder --win"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary",
+  "build": {
+    "appId": "tech.almostmagic.junkdrawer",
+    "productName": "Junk Drawer",
+    "extends": null,
+    "files": [
+      "../../shared/**/*",
+      "config.json"
+    ],
+    "extraMetadata": {
+      "main": "shared/main.js"
+    },
+    "directories": {
+      "output": "../../dist/junk-drawer",
+      "buildResources": "../../shared"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../../icons/junk-drawer.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Junk Drawer"
+    }
+  }
+}

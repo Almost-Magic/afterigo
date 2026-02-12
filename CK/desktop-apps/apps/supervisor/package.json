@@ -1,0 +1,38 @@
+{
+  "name": "amtl-supervisor",
+  "version": "1.0.0",
+  "description": "Supervisor -- AMTL Runtime Manager (AMTL Desktop)",
+  "main": "../../shared/main.js",
+  "scripts": {
+    "start": "electron ../../shared/main.js --config=./config.json",
+    "build": "electron-builder --win"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary",
+  "build": {
+    "appId": "tech.almostmagic.supervisor",
+    "productName": "Supervisor",
+    "extends": null,
+    "files": [
+      "../../shared/**/*",
+      "config.json"
+    ],
+    "extraMetadata": {
+      "main": "shared/main.js"
+    },
+    "directories": {
+      "output": "../../dist/supervisor",
+      "buildResources": "../../shared"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../../icons/supervisor.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Supervisor"
+    }
+  }
+}

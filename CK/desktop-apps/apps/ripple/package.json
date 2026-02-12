@@ -1,0 +1,38 @@
+{
+  "name": "amtl-ripple",
+  "version": "1.0.0",
+  "description": "Ripple CRM -- Relationship Intelligence Engine (AMTL Desktop)",
+  "main": "../../shared/main.js",
+  "scripts": {
+    "start": "electron ../../shared/main.js --config=./config.json",
+    "build": "electron-builder --win"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary",
+  "build": {
+    "appId": "tech.almostmagic.ripple",
+    "productName": "Ripple CRM",
+    "extends": null,
+    "files": [
+      "../../shared/**/*",
+      "config.json"
+    ],
+    "extraMetadata": {
+      "main": "shared/main.js"
+    },
+    "directories": {
+      "output": "../../dist/ripple",
+      "buildResources": "../../shared"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../../icons/ripple.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Ripple CRM"
+    }
+  }
+}

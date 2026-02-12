@@ -1,0 +1,10 @@
+{
+  "id": "writer",
+  "name": "CK Writer",
+  "desc": "8-Mode Writing Studio",
+  "url": "http://localhost:5004",
+  "healthUrl": "http://localhost:5004/api/health",
+  "port": 5004,
+  "accent": "#34d399",
+  "letter": "W"
+}

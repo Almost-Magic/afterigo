@@ -1,0 +1,10 @@
+{
+  "id": "elaine",
+  "name": "Elaine",
+  "desc": "AI Chief of Staff",
+  "url": "http://localhost:5000",
+  "healthUrl": "http://localhost:5000/api/health",
+  "port": 5000,
+  "accent": "#c9a84c",
+  "letter": "E"
+}

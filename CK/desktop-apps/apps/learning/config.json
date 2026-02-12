@@ -1,0 +1,10 @@
+{
+  "id": "learning",
+  "name": "Learning Assistant",
+  "desc": "Micro-skill Training",
+  "url": "http://localhost:5002",
+  "healthUrl": "http://localhost:5002/api/health",
+  "port": 5002,
+  "accent": "#38bdf8",
+  "letter": "L"
+}

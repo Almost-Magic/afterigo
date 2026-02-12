@@ -1,0 +1,10 @@
+{
+  "id": "author-studio",
+  "name": "Author Studio",
+  "desc": "Book DNA & Amazon Listings",
+  "url": "http://localhost:5007",
+  "healthUrl": "http://localhost:5007/api/health",
+  "port": 5007,
+  "accent": "#e879f9",
+  "letter": "A"
+}

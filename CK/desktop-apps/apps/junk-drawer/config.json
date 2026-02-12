@@ -1,0 +1,10 @@
+{
+  "id": "junk-drawer",
+  "name": "Junk Drawer",
+  "desc": "Cognitive File Intelligence",
+  "url": "http://localhost:3005",
+  "healthUrl": "http://localhost:5005/api/health",
+  "port": 3005,
+  "accent": "#94a3b8",
+  "letter": "J"
+}

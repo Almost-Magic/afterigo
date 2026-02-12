@@ -1,0 +1,38 @@
+{
+  "name": "amtl-author-studio",
+  "version": "1.0.0",
+  "description": "Author Studio -- Book DNA & Amazon Listings (AMTL Desktop)",
+  "main": "../../shared/main.js",
+  "scripts": {
+    "start": "electron ../../shared/main.js --config=./config.json",
+    "build": "electron-builder --win"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary",
+  "build": {
+    "appId": "tech.almostmagic.authorstudio",
+    "productName": "Author Studio",
+    "extends": null,
+    "files": [
+      "../../shared/**/*",
+      "config.json"
+    ],
+    "extraMetadata": {
+      "main": "shared/main.js"
+    },
+    "directories": {
+      "output": "../../dist/author-studio",
+      "buildResources": "../../shared"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../../icons/author-studio.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Author Studio"
+    }
+  }
+}

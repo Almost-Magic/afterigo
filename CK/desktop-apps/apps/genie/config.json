@@ -1,0 +1,10 @@
+{
+  "id": "genie",
+  "name": "Genie",
+  "desc": "AI Bookkeeper",
+  "url": "http://localhost:3000",
+  "healthUrl": "http://localhost:8000/api/health",
+  "port": 3000,
+  "accent": "#a78bfa",
+  "letter": "G"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "supervisor",
+  "name": "Supervisor",
+  "desc": "AMTL Runtime Manager",
+  "url": "http://localhost:9000/api/status",
+  "healthUrl": "http://localhost:9000/api/health",
+  "port": 9000,
+  "accent": "#f87171",
+  "letter": "S"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "peterman",
+  "name": "Peterman",
+  "desc": "Brand Intelligence Engine",
+  "url": "http://localhost:5008",
+  "healthUrl": "http://localhost:5008/api/health",
+  "port": 5008,
+  "accent": "#60a5fa",
+  "letter": "P"
+}

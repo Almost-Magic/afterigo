@@ -1,0 +1,38 @@
+{
+  "name": "amtl-workshop",
+  "version": "1.0.0",
+  "description": "The Workshop -- Central App Launcher (AMTL Desktop)",
+  "main": "../../shared/main.js",
+  "scripts": {
+    "start": "electron ../../shared/main.js --config=./config.json",
+    "build": "electron-builder --win"
+  },
+  "author": "Mani Padisetti <mani@almostmagic.tech>",
+  "license": "Proprietary",
+  "build": {
+    "appId": "tech.almostmagic.workshop",
+    "productName": "The Workshop",
+    "extends": null,
+    "files": [
+      "../../shared/**/*",
+      "config.json"
+    ],
+    "extraMetadata": {
+      "main": "shared/main.js"
+    },
+    "directories": {
+      "output": "../../dist/workshop",
+      "buildResources": "../../shared"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../../icons/workshop.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "The Workshop"
+    }
+  }
+}

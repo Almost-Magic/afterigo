@@ -1,0 +1,10 @@
+{
+  "id": "touchstone",
+  "name": "Touchstone",
+  "desc": "Marketing Attribution Dashboard",
+  "url": "http://localhost:3200",
+  "healthUrl": "http://localhost:8200/api/health",
+  "port": 3200,
+  "accent": "#f59e0b",
+  "letter": "T"
+}

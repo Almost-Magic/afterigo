@@ -1,0 +1,4 @@
+node_modules/
+dist/
+*.ico
+package-lock.json
