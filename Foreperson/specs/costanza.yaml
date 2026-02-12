@@ -39,5 +39,9 @@ features:
 
   - id: model_combinations
     name: Multi-model combinations
-    check: manual_ui_check
-    notes: Combine multiple models for deeper analysis
+    check: http_post
+    path: /api/analyze
+    body: {"situation": "Complex decision requiring multiple perspectives", "domain": "strategy", "stakes": "high"}
+    expected_status: 200
+    expected_contains: frameworks_applied
+    notes: High-stakes analysis applies multiple frameworks (six_hats, second_order, pre_mortem)

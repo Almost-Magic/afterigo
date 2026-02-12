@@ -86,7 +86,7 @@ def run_amplifier_scan(brand_id):
 def get_amplifier(brand_id):
     """Get latest citation results."""
     Brand.query.get_or_404(brand_id)
-    results = CitationResult.query.filter_by(brand_id=brand_id).order_by(
+    results = db.session.query(CitationResult).filter_by(brand_id=brand_id).order_by(
         CitationResult.created_at.desc()
     ).limit(50).all()
     return jsonify({"results": [r.to_dict() for r in results], "total": len(results)})
@@ -96,7 +96,7 @@ def get_amplifier(brand_id):
 def competitor_shadow(brand_id):
     """Get competitor shadow analysis — who appears instead of you?"""
     Brand.query.get_or_404(brand_id)
-    results = CitationResult.query.filter_by(brand_id=brand_id).order_by(
+    results = db.session.query(CitationResult).filter_by(brand_id=brand_id).order_by(
         CitationResult.created_at.desc()
     ).limit(20).all()
 

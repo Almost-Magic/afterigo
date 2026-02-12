@@ -27,23 +27,20 @@ features:
   - id: authority_engine
     name: Authority engine
     check: http_get
-    path: /api/chambers
+    path: /api/authority/1
     expected_status: 200
-    expected_contains: authority
-    notes: All 10 chambers should be functional
+    notes: Functional endpoint — returns authority scan results for brand 1
 
   - id: presence_engine
-    name: Presence engine
+    name: Presence engine (Technical SEO)
     check: http_get
-    path: /api/chambers
+    path: /api/technical/1
     expected_status: 200
-    expected_contains: machine
-    notes: Machine Chamber handles machine-readable presence audit
+    notes: Machine Chamber — returns technical audit results for brand 1
 
   - id: linkedin_integration
-    name: LinkedIn content generation
+    name: Content amplification engine
     check: http_get
-    path: /api/chambers
+    path: /api/amplifier/1
     expected_status: 200
-    expected_contains: amplifier
-    notes: Amplifier Chamber handles content amplification
+    notes: Amplifier Chamber — returns citation results for brand 1

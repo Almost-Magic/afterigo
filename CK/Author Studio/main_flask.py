@@ -447,6 +447,16 @@ def get_book():
     data = request.json
     return jsonify(db.get_book(data['id']))
 
+@app.route('/api/upload', methods=['GET'])
+def upload_status():
+    return jsonify({
+        'service': 'manuscript-upload',
+        'status': 'available',
+        'accepted_formats': ['.docx', '.pdf', '.txt', '.epub'],
+        'max_size_mb': 50,
+        'books_loaded': len(db.get_all_books()),
+    })
+
 @app.route('/api/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
