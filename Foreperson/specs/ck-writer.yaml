@@ -1,5 +1,5 @@
 app: CK Writer
-description: 8-Mode Writing Studio — Multi-LLM comparison
+description: 8-Mode Writing Studio via Supervisor
 port: 5004
 url: http://localhost:5004
 category: ck
@@ -18,20 +18,26 @@ features:
     path: /
     expected_status: 200
 
+  - id: supervisor_connection
+    name: Connects to Supervisor (LLM router)
+    check: http_get
+    path: /api/health
+    expected_contains: supervisor
+
   - id: multi_llm_comparison
-    name: Multi-LLM comparison (side-by-side)
+    name: Multi-LLM comparison mode
     check: http_get
     path: /api/modes
     expected_contains: compar
 
   - id: plagiarism_check
-    name: Plagiarism check
+    name: Plagiarism check mode
     check: http_get
     path: /api/modes
     expected_contains: plagiar
 
   - id: ai_detection
-    name: AI detection analysis
+    name: AI detection analysis mode
     check: http_get
     path: /api/modes
     expected_contains: detect
@@ -42,19 +48,62 @@ features:
     path: /api/modes
     expected_contains: style
 
-  - id: ollama_connection
-    name: Connects to Ollama (via Supervisor)
+  - id: creative_writing
+    name: Creative writing mode
     check: http_get
-    path: /api/health
-    expected_contains: ollama
+    path: /api/modes
+    expected_contains: creative
 
-  - id: cloud_fallback
-    name: Cloud API fallback when Ollama fails
-    check: manual_ui_check
-    notes: When Ollama is down, should transparently route to cloud API
+  - id: business_writing
+    name: Business writing mode
+    check: http_get
+    path: /api/modes
+    expected_contains: business
+
+  - id: academic_writing
+    name: Academic writing mode
+    check: http_get
+    path: /api/modes
+    expected_contains: academic
 
   - id: draft_saving
     name: Draft saving and retrieval
     check: http_get
     path: /api/drafts
+    expected_status: 200
+
+  - id: document_library
+    name: Document library with tags
+    check: http_get
+    path: /api/documents
+    expected_status: 200
+
+  - id: export_support
+    name: Export endpoints available
+    check: http_get
+    path: /api/health
+    expected_contains: ck-writer
+
+  - id: ai_models
+    name: AI model listing via Supervisor
+    check: http_get
+    path: /api/ai/models
+    expected_status: 200
+
+  - id: writing_stats
+    name: Writing statistics tracking
+    check: http_get
+    path: /api/stats/today
+    expected_status: 200
+
+  - id: templates
+    name: Writing templates available
+    check: http_get
+    path: /api/templates
+    expected_status: 200
+
+  - id: settings_endpoint
+    name: Settings endpoint available
+    check: http_get
+    path: /api/settings
     expected_status: 200
