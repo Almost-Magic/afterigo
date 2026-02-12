@@ -41,7 +41,7 @@ SOURCE_BASE = os.getenv('SOURCE_BASE', r'C:\Users\ManiPadisetti\Dropbox\Desktop 
 
 SERVICES = {
     # CK Apps â€” launchable
-    'Elaine':             {'name': 'Elaine',              'port': 5000,  'url': 'http://localhost:5000',  'type': 'ck',    'path': os.path.join(CK_BASE, 'Elaine'),           'cmd': 'launch-elaine.bat'},
+    'Elaine':             {'name': 'Elaine',              'port': 5000,  'url': 'http://192.168.4.55:5000',  'type': 'ck',    'path': os.path.join(CK_BASE, 'Elaine'),           'cmd': 'launch-elaine.bat', 'health': '/api/health'},
     'costanza':           {'name': 'Costanza',            'port': 5001,  'url': 'http://localhost:5001',  'type': 'ck',    'path': os.path.join(CK_BASE, 'costanza'),          'cmd': 'launch-elaine.bat'},
     'learning-assistant': {'name': 'Learning Assistant',  'port': 5002,  'url': 'http://localhost:5002',  'type': 'ck',    'path': os.path.join(CK_BASE, 'learning-assistant'),'cmd': 'launch-elaine.bat'},
     'writer':             {'name': 'CK Writer',           'port': 5004,  'url': 'http://localhost:5004',  'type': 'ck',    'path': os.path.join(CK_BASE, 'ck-writer'),         'cmd': 'launch-elaine.bat'},
@@ -67,6 +67,10 @@ SERVICES = {
     'listmonk':           {'name': 'Listmonk',            'port': 9001,  'url': 'http://localhost:9001',  'type': 'infra', 'docker': 'listmonk'},
     'proof':              {'name': 'Proof',               'port': 8000,  'url': 'http://localhost:8000',  'type': 'infra', 'path': os.path.join(CK_BASE, '..', '..', '..', '..', '..', 'projects', 'proof'), 'cmd': 'python -m uvicorn main:app --host 0.0.0.0 --port 8000'},
     'supervisor':         {'name': 'The Supervisor',      'port': 9000,  'url': 'http://localhost:9000',  'type': 'infra', 'health': '/api/health', 'path': os.path.join(SOURCE_BASE, 'Supervisor'), 'cmd': 'python supervisor.py'},
+
+    # Finance & Market Data
+    'fincept':            {'name': 'FinceptTerminal',     'port': None,  'url': None,                     'type': 'ck',    'path': None, 'cmd': None},
+    'ghostfolio':         {'name': 'Ghostfolio',          'port': 3333,  'url': 'http://localhost:3333',  'type': 'infra', 'health': '/api/v1/health', 'docker': 'ghostfolio'},
 }
 
 # Track launched processes
