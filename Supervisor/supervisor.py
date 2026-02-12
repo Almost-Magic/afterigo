@@ -1065,7 +1065,9 @@ def api_health():
 
 @app.route("/api/status")
 def api_status():
-    services = service_graph.check_all_health() if service_graph else {}
+    # Use cached health results (updated every 30s by HealthGuardian)
+    # instead of live check_all_health() which blocks 45-75s on down services
+    services = service_graph.to_dict() if service_graph else {}
     gpu = gpu_scheduler.to_dict() if gpu_scheduler else {}
     return jsonify({
         "status": "healthy",
