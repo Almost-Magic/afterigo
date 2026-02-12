@@ -215,6 +215,21 @@ features:
     expected_status: 200
     expected_contains: items
 
+  # Phase 2.4: Rep Bias Brain
+  - id: rep_bias_profile
+    name: Rep bias profile
+    check: http_get
+    path: /api/rep-bias/profile
+    expected_status: 200
+    expected_contains: total_forecasts
+
+  - id: rep_bias_forecasts
+    name: Rep bias forecast list
+    check: http_get
+    path: /api/rep-bias/forecasts
+    expected_status: 200
+    expected_contains: items
+
   # Phase 2.3: Commute Briefing v1
   - id: briefing_depths
     name: Briefing depth thresholds

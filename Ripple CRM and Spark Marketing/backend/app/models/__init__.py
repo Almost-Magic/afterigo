@@ -23,6 +23,7 @@ from app.models.sales_target import SalesTarget
 from app.models.pulse_snapshot import PulseSnapshot
 from app.models.pulse_action import PulseAction
 from app.models.pulse_wisdom import PulseWisdom
+from app.models.rep_forecast import RepForecastHistory
 
 __all__ = [
     "Base",
@@ -50,4 +51,5 @@ __all__ = [
     "PulseSnapshot",
     "PulseAction",
     "PulseWisdom",
+    "RepForecastHistory",
 ]

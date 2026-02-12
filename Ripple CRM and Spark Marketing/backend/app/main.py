@@ -16,6 +16,7 @@ from app.routers import (
     channel_interactions,
     commute_briefing,
     companies,
+    rep_bias,
     commitments,
     contacts,
     dashboard,
@@ -99,6 +100,9 @@ app.include_router(scoring_rules.router, prefix="/api")
 app.include_router(meetings.router, prefix="/api")
 app.include_router(meetings.contact_router, prefix="/api")
 app.include_router(meetings.deal_router, prefix="/api")
+# Phase 2.4: Rep Bias Brain
+app.include_router(rep_bias.router, prefix="/api")
+app.include_router(rep_bias.deal_router, prefix="/api")
 # Phase 2.3: Commute Briefing
 app.include_router(commute_briefing.router, prefix="/api")
 app.include_router(commute_briefing.meeting_router, prefix="/api")
