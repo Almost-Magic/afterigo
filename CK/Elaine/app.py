@@ -3,6 +3,7 @@ Elaine v4 — Phase 12+: Complete System with Orchestrator + Morning Brief
 Flask application entry point.
 
 16 modules + Orchestrator + Phase 5 Morning Briefing + APScheduler.
+Jinja2 templates → Ollama LLM → SQLite storage.
 Almost Magic Tech Lab
 """
 
@@ -10,14 +11,123 @@ from flask import Flask, jsonify, request
 import json
 import logging
 import sqlite3
-from datetime import datetime
+import subprocess
+import threading
+from datetime import datetime, timedelta
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
 from config import *
+
+try:
+    import requests as http_requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
 )
 logger = logging.getLogger("elaine.app")
+
+
+OLLAMA_URL = "http://localhost:9000/api/generate"
+OLLAMA_MODEL = "gemma2:27b"
+ELAINE_DIR = Path(__file__).parent.resolve()
+BRIEFING_TEMPLATE_DIR = ELAINE_DIR / "templates" / "briefing"
+LLM_DB_PATH = Path.home() / ".elaine" / "briefing.db"
+
+
+def _call_ollama(prompt, model=OLLAMA_MODEL, timeout=300):
+    """Send prompt to Ollama and return the response text.
+    Returns (text, True) on success, (fallback_text, False) on failure."""
+    if not HAS_REQUESTS:
+        return prompt, False
+    try:
+        resp = http_requests.post(
+            OLLAMA_URL,
+            json={"model": model, "prompt": prompt, "stream": False},
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        return resp.json().get("response", ""), True
+    except Exception as exc:
+        logger.warning("Ollama call failed (%s) — using raw template as fallback", exc)
+        return prompt, False
+
+
+def _render_template(template_name, **kwargs):
+    """Render a Jinja2 template from templates/briefing/."""
+    env = Environment(loader=FileSystemLoader(str(BRIEFING_TEMPLATE_DIR)))
+    tpl = env.get_template(template_name)
+    return tpl.render(**kwargs)
+
+
+def _init_llm_tables():
+    """Ensure the llm_briefings table exists in briefing.db."""
+    LLM_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(LLM_DB_PATH))
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS llm_briefings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        briefing_type TEXT NOT NULL,
+        raw_data TEXT,
+        rendered_prompt TEXT,
+        llm_response TEXT,
+        ollama_ok INTEGER DEFAULT 0,
+        generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )""")
+    conn.commit()
+    conn.close()
+
+
+_init_llm_tables()
+
+
+def _store_llm_briefing(briefing_type, raw_data, rendered_prompt, llm_response, ollama_ok):
+    """Store an LLM-generated briefing in briefing.db."""
+    conn = sqlite3.connect(str(LLM_DB_PATH))
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO llm_briefings (briefing_type, raw_data, rendered_prompt, llm_response, ollama_ok) VALUES (?, ?, ?, ?, ?)",
+        (briefing_type, json.dumps(raw_data, default=str), rendered_prompt, llm_response, int(ollama_ok)),
+    )
+    conn.commit()
+    conn.close()
+
+
+def _get_latest_llm_briefing(briefing_type):
+    """Return the most recent LLM briefing of the given type.
+    Prefers Ollama-completed entries from today; falls back to most recent."""
+    conn = sqlite3.connect(str(LLM_DB_PATH))
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    # Try Ollama-completed entry from last 24 hours first
+    yesterday = (datetime.now() - timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+    c.execute(
+        "SELECT llm_response, ollama_ok, generated_at, raw_data FROM llm_briefings "
+        "WHERE briefing_type = ? AND ollama_ok = 1 AND generated_at >= ? "
+        "ORDER BY generated_at DESC LIMIT 1",
+        (briefing_type, yesterday),
+    )
+    row = c.fetchone()
+    if not row:
+        # Fall back to most recent entry of any kind
+        c.execute(
+            "SELECT llm_response, ollama_ok, generated_at, raw_data FROM llm_briefings "
+            "WHERE briefing_type = ? ORDER BY generated_at DESC LIMIT 1",
+            (briefing_type,),
+        )
+        row = c.fetchone()
+    conn.close()
+    if row:
+        return {
+            "briefing": row["llm_response"],
+            "ollama_ok": bool(row["ollama_ok"]),
+            "generated_at": row["generated_at"],
+            "raw_data": json.loads(row["raw_data"]) if row["raw_data"] else {},
+        }
+    return None
 
 
 def create_app():
@@ -243,8 +353,8 @@ def create_app():
 
     # ── Combined Briefing Helper (modules + Phase 5) ─────────────
 
-    def _generate_combined_briefing():
-        """Merge module-level data with Phase 5 engine (news, LinkedIn, POI)."""
+    def _collect_briefing_data():
+        """Collect all module + Phase 5 data into a dict (no LLM call)."""
         now = datetime.now()
         hour = now.hour
         greeting = "Good morning" if hour < 12 else "Good afternoon" if hour < 17 else "Good evening"
@@ -284,7 +394,7 @@ def create_app():
         except Exception:
             actions = {"title": "Pending Action Items", "items": []}
 
-        combined = {
+        return {
             "greeting": f"{greeting}, Mani.",
             "generated_at": now.isoformat(),
             "date": now.strftime("%A, %d %B %Y"),
@@ -317,30 +427,123 @@ def create_app():
             "action_items": actions,
         }
 
-        # Store to Phase 5 SQLite DB
+    def _render_briefing_prompt(combined, template_name="morning_brief.j2"):
+        """Render the Jinja2 template with collected data."""
+        now = datetime.now()
+        try:
+            prompt = _render_template(
+                template_name,
+                current_date=now.strftime("%d %B %Y"),
+                day_of_week=now.strftime("%A"),
+                date_formatted=now.strftime("%d %B %Y"),
+                **combined,
+            )
+            return prompt
+        except Exception as exc:
+            logger.error("Jinja2 render failed for %s: %s", template_name, exc)
+            return f"Generate a morning brief for Mani Padisetti on {now.strftime('%A %d %B %Y')}."
+
+    def _ollama_background(briefing_type, combined, prompt):
+        """Send prompt to Ollama in a background thread and store the result."""
+        try:
+            llm_response, ollama_ok = _call_ollama(prompt)
+            _store_llm_briefing(briefing_type, combined, prompt, llm_response, ollama_ok)
+            logger.info("Background Ollama %s complete (ok=%s, len=%d)", briefing_type, ollama_ok, len(llm_response))
+        except Exception as exc:
+            logger.error("Background Ollama %s failed: %s", briefing_type, exc)
+
+    def _generate_combined_briefing(sync=False):
+        """Collect data, render Jinja2, send to Ollama (async), store result.
+        If sync=True, waits for Ollama (used by scheduler). Otherwise returns immediately."""
+        combined = _collect_briefing_data()
+        now = datetime.now()
+
+        # Store raw data to Phase 5 DB
         try:
             briefing_engine._store_briefing(combined)
         except Exception as exc:
-            logger.warning("Failed to store briefing: %s", exc)
+            logger.warning("Failed to store raw briefing: %s", exc)
 
-        logger.info("Combined morning briefing generated (%d news, %d POI)",
-                     len(news.get("items", [])), len(poi.get("items", [])))
-        return combined
+        prompt = _render_briefing_prompt(combined, "morning_brief.j2")
 
-    # ── APScheduler — daily 07:00 AEST ────────────────────────────
+        if sync:
+            # Scheduler path: wait for Ollama (runs in background thread already)
+            llm_response, ollama_ok = _call_ollama(prompt)
+            _store_llm_briefing("morning_brief", combined, prompt, llm_response, ollama_ok)
+            logger.info("Scheduled morning briefing generated (ollama=%s)", ollama_ok)
+            return {"briefing": llm_response, "ollama_ok": ollama_ok, "generated_at": now.isoformat(), "raw_data": combined}
+
+        # HTTP path: store the rendered prompt as fallback immediately, fire Ollama in background
+        _store_llm_briefing("morning_brief", combined, prompt, prompt, False)
+        thread = threading.Thread(target=_ollama_background, args=("morning_brief", combined, prompt), daemon=True)
+        thread.start()
+
+        logger.info("Morning briefing dispatched to Ollama (background)")
+        return {
+            "briefing": prompt,
+            "ollama_ok": False,
+            "ollama_pending": True,
+            "generated_at": now.isoformat(),
+            "raw_data": combined,
+        }
+
+    def _generate_weekly_prep(sync=False):
+        """Collect data, render weekly_prep.j2, send to Ollama, store result."""
+        combined = _collect_briefing_data()
+        now = datetime.now()
+        monday = now - timedelta(days=now.weekday())
+        friday = monday + timedelta(days=4)
+
+        try:
+            prompt = _render_template(
+                "weekly_prep.j2",
+                week_start_date=monday.strftime("%d %B %Y"),
+                week_end_date=friday.strftime("%d %B %Y"),
+                **combined,
+            )
+        except Exception as exc:
+            logger.error("Weekly prep Jinja2 render failed: %s", exc)
+            prompt = f"Generate a weekly prep for Mani Padisetti, week of {monday.strftime('%d %B')} to {friday.strftime('%d %B %Y')}."
+
+        if sync:
+            llm_response, ollama_ok = _call_ollama(prompt)
+            _store_llm_briefing("weekly_prep", combined, prompt, llm_response, ollama_ok)
+            logger.info("Scheduled weekly prep generated (ollama=%s)", ollama_ok)
+            return {"briefing": llm_response, "ollama_ok": ollama_ok, "generated_at": now.isoformat(), "raw_data": combined}
+
+        _store_llm_briefing("weekly_prep", combined, prompt, prompt, False)
+        thread = threading.Thread(target=_ollama_background, args=("weekly_prep", combined, prompt), daemon=True)
+        thread.start()
+
+        logger.info("Weekly prep dispatched to Ollama (background)")
+        return {
+            "briefing": prompt,
+            "ollama_ok": False,
+            "ollama_pending": True,
+            "generated_at": now.isoformat(),
+            "raw_data": combined,
+        }
+
+    # ── APScheduler — Morning Brief 07:00 + Weekly Prep Mon 06:30 ─
 
     from apscheduler.schedulers.background import BackgroundScheduler
     from apscheduler.triggers.cron import CronTrigger
 
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
-        _generate_combined_briefing,
+        lambda: _generate_combined_briefing(sync=True),
         CronTrigger(hour=7, minute=0, timezone="Australia/Sydney"),
         id="morning_briefing",
         replace_existing=True,
     )
+    scheduler.add_job(
+        lambda: _generate_weekly_prep(sync=True),
+        CronTrigger(day_of_week="mon", hour=6, minute=30, timezone="Australia/Sydney"),
+        id="weekly_prep",
+        replace_existing=True,
+    )
     scheduler.start()
-    logger.info("APScheduler started -- morning briefing at 07:00 Australia/Sydney")
+    logger.info("APScheduler started — Morning Brief daily 07:00, Weekly Prep Monday 06:30 (Australia/Sydney)")
 
     # ── System Status ────────────────────────────────────────────
 
@@ -377,12 +580,16 @@ def create_app():
 
     @app.route("/api/morning-briefing", methods=["GET"])
     def morning_briefing():
-        """Generate and return the full combined briefing (modules + Phase 5)."""
+        """Generate and return the full combined briefing (modules + Phase 5 + LLM)."""
         return jsonify(_generate_combined_briefing())
 
     @app.route("/api/morning-briefing/latest", methods=["GET"])
     def morning_briefing_latest():
-        """Return the most recent stored briefing without regenerating."""
+        """Return the most recent LLM-generated morning brief without regenerating."""
+        result = _get_latest_llm_briefing("morning_brief")
+        if result:
+            return jsonify(result)
+        # Fallback: try the raw Phase 5 store
         try:
             conn = sqlite3.connect(briefing_engine.db_path)
             conn.row_factory = sqlite3.Row
@@ -392,11 +599,80 @@ def create_app():
             conn.close()
             if row:
                 data = json.loads(row["briefing_data"])
-                data["_stored_at"] = row["generated_at"]
-                return jsonify(data)
-            return jsonify({"error": "No briefing stored yet. Hit GET /api/morning-briefing to generate one."}), 404
+                return jsonify({"briefing": data.get("greeting", "No LLM brief yet."), "ollama_ok": False, "generated_at": row["generated_at"], "raw_data": data})
+        except Exception:
+            pass
+        return jsonify({"error": "No briefing stored yet. Hit POST /api/morning-briefing/generate to create one."}), 404
+
+    @app.route("/api/morning-briefing/generate", methods=["POST"])
+    def morning_briefing_generate():
+        """Trigger a morning briefing now (for testing). Renders Jinja2 → Ollama → stores."""
+        result = _generate_combined_briefing()
+        return jsonify(result)
+
+    # ── Weekly Prep ────────────────────────────────────────────────
+
+    @app.route("/api/weekly-prep/latest", methods=["GET"])
+    def weekly_prep_latest():
+        """Return the most recent LLM-generated weekly prep."""
+        result = _get_latest_llm_briefing("weekly_prep")
+        if result:
+            return jsonify(result)
+        return jsonify({"error": "No weekly prep stored yet. Hit POST /api/weekly-prep/generate to create one."}), 404
+
+    @app.route("/api/weekly-prep/generate", methods=["POST"])
+    def weekly_prep_generate():
+        """Trigger weekly prep now (for testing)."""
+        result = _generate_weekly_prep()
+        return jsonify(result)
+
+    # ── Philosophy Research ────────────────────────────────────────
+
+    @app.route("/api/research/philosophy", methods=["POST"])
+    def philosophy_research():
+        """Run philosophy corpus search + Ollama synthesis.
+        Body: {"question": "...", "filter_category": "optional"}
+        """
+        data = request.get_json(force=True)
+        question = data.get("question", "").strip()
+        if not question:
+            return jsonify({"error": "question is required"}), 400
+        filter_category = data.get("filter_category", "")
+
+        # Try running philosophy_search.py if it exists
+        passages = []
+        search_script = ELAINE_DIR / "philosophy_search.py"
+        if search_script.exists():
+            try:
+                cmd = ["python", str(search_script), "--query", question]
+                if filter_category:
+                    cmd.extend(["--category", filter_category])
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=str(ELAINE_DIR))
+                if proc.returncode == 0 and proc.stdout.strip():
+                    passages = json.loads(proc.stdout)
+            except Exception as exc:
+                logger.warning("philosophy_search.py failed: %s", exc)
+
+        # Render template
+        try:
+            prompt = _render_template(
+                "philosophy_research.j2",
+                question=question,
+                filter_category=filter_category,
+                passages=passages,
+            )
         except Exception as exc:
-            return jsonify({"error": str(exc)}), 500
+            logger.error("Philosophy template render failed: %s", exc)
+            prompt = f"Answer this philosophy question for Mani Padisetti in Australian English: {question}"
+
+        llm_response, ollama_ok = _call_ollama(prompt, timeout=90)
+        return jsonify({
+            "question": question,
+            "filter_category": filter_category,
+            "synthesis": llm_response,
+            "ollama_ok": ollama_ok,
+            "passages_used": len(passages),
+        })
 
     # ── Voice Morning Briefing ───────────────────────────────────
 

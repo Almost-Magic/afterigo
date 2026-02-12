@@ -178,6 +178,29 @@ body{font-family:'Sora',system-ui,sans-serif;background:var(--bg);color:var(--te
 .briefing-text{font-size:15px;line-height:1.8;color:var(--text)}
 .briefing-close{font-size:13px;color:var(--accent);font-style:italic;margin-top:var(--sp3)}
 
+/* Morning Brief Panel */
+.brief-panel{padding:var(--sp6);max-width:800px}
+.brief-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp4)}
+.brief-header-left{display:flex;align-items:center;gap:var(--sp3)}
+.brief-header h2{font-size:18px;font-weight:600;color:var(--text-em);margin:0}
+.brief-meta{font-size:11px;color:var(--text-muted)}
+.brief-actions{display:flex;gap:var(--sp2)}
+.brief-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:6px 14px;font-family:inherit;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.brief-btn:hover{color:var(--text);border-color:var(--accent)}
+.brief-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:500}
+.brief-btn.primary:hover{background:var(--accent-hover)}
+.brief-btn:disabled{opacity:.5;cursor:not-allowed}
+.brief-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp6);font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;box-shadow:var(--shadow-sm)}
+.brief-content h3{font-size:16px;font-weight:600;color:var(--accent);margin:var(--sp4) 0 var(--sp2)}
+.brief-content strong{color:var(--text-em)}
+.brief-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:var(--sp2) 0}
+.brief-status .dot{width:6px;height:6px;border-radius:50%}
+.brief-status .dot.ok{background:var(--success)}
+.brief-status .dot.fallback{background:var(--warning)}
+.brief-loading{display:flex;align-items:center;gap:10px;padding:var(--sp6);color:var(--text-muted);font-size:13px}
+.brief-spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* -- CHAT PANEL -- */
 .chat-panel{display:flex;flex-direction:column;height:100%}
 .chat-msgs{flex:1;overflow-y:auto;padding:var(--sp6)}
@@ -356,53 +379,20 @@ body{font-family:'Sora',system-ui,sans-serif;background:var(--bg);color:var(--te
 
     <!-- MORNING BRIEF -->
     <div class="panel" id="p-briefing">
-      <div class="dashboard" id="briefingGrid">
-        <div class="card span-3">
-          <div class="card-head"><span class="card-label">Morning Brief</span><span class="card-action" onclick="loadBriefing()">Refresh</span></div>
-          <div class="card-med" id="bGreeting">Loading briefing...</div>
-          <div class="card-sub" id="bDate"></div>
-        </div>
-        <!-- Priorities -->
-        <div class="card">
-          <div class="card-head"><span class="card-label">Top Priorities</span></div>
-          <div id="bGravity"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- Drift Alert -->
-        <div class="card">
-          <div class="card-head"><span class="card-label">Drift Alert</span></div>
-          <div id="bDrift"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- Rest Suggestion -->
-        <div class="card">
-          <div class="card-head"><span class="card-label">Wellbeing Check</span></div>
-          <div id="bRest"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- News -->
-        <div class="card span-2">
-          <div class="card-head"><span class="card-label">News &amp; Industry</span></div>
-          <div id="bNews"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- People of Interest -->
-        <div class="card">
-          <div class="card-head"><span class="card-label">People of Interest</span></div>
-          <div id="bPoi"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- LinkedIn -->
-        <div class="card span-2">
-          <div class="card-head"><span class="card-label">LinkedIn &amp; Industry</span></div>
-          <div id="bLinkedin"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- Deadlines -->
-        <div class="card">
-          <div class="card-head"><span class="card-label">Deadlines</span></div>
-          <div id="bDeadlines"><span style="color:var(--text-muted)">Loading...</span></div>
-        </div>
-        <!-- Module Data -->
-        <div class="card span-3">
-          <div class="card-head"><span class="card-label">Module Intelligence</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp3)" id="bModules">
-            <span style="color:var(--text-muted)">Loading...</span>
+      <div class="brief-panel">
+        <div class="brief-header">
+          <div class="brief-header-left">
+            <h2>Morning Brief</h2>
+            <div class="brief-status" id="briefStatus"></div>
           </div>
+          <div class="brief-actions">
+            <button class="brief-btn" onclick="loadBriefing()" id="briefRefreshBtn">Refresh</button>
+            <button class="brief-btn primary" onclick="generateBriefing()" id="briefGenBtn">Generate Now</button>
+          </div>
+        </div>
+        <div class="brief-meta" id="briefMeta">No briefing loaded yet.</div>
+        <div class="brief-content" id="briefContent" style="margin-top:var(--sp3)">
+          <span style="color:var(--text-muted)">Click "Generate Now" to create today's brief, or "Refresh" to load the latest stored one.</span>
         </div>
       </div>
     </div>
@@ -584,99 +574,6 @@ function renderTools(){
   grid.innerHTML=html||'<div style="color:var(--text-muted)">No tools registered</div>';
 }
 
-/* === Morning Brief === */
-var briefingCache=null;
-
-async function loadBriefing(){
-  try{
-    /* Try latest (stored) first — fast. Fall back to live generate. */
-    var b;
-    try{b=await api('GET','/api/morning-briefing/latest');if(b.error)throw b.error}catch(e){b=await api('GET','/api/morning-briefing')}
-    briefingCache=b;
-    renderBriefing(b);
-  }catch(e){
-    document.getElementById('bGreeting').textContent='Could not load briefing: '+e.message;
-  }
-}
-
-function renderBriefing(b){
-  document.getElementById('bGreeting').textContent=b.greeting||'Good morning, Mani.';
-  document.getElementById('bDate').textContent=b.date||'';
-
-  /* Dashboard summary card */
-  document.getElementById('dBriefOpen').textContent=b.greeting||"Here's what needs your attention.";
-  var parts=[];
-  if((b.gravity||{}).red_giants)parts.push(b.gravity.red_giants+' red giant'+(b.gravity.red_giants!==1?'s':''));
-  var newsN=((b.news||{}).items||[]).length;if(newsN)parts.push(newsN+' news item'+(newsN!==1?'s':''));
-  var poiN=((b.people||{}).items||[]).length;if(poiN)parts.push(poiN+' POI update'+(poiN!==1?'s':''));
-  document.getElementById('dBriefSummary').textContent=parts.join(' \u00B7 ')||'Clear schedule. Good time for deep work.';
-
-  /* Gravity / priorities */
-  var grav=b.gravity||{};
-  var html='';
-  if(grav.red_giants>0)html+='<div style="color:var(--error);font-weight:600;margin-bottom:6px">\u26a0 '+grav.red_giants+' Red Giant'+(grav.red_giants!==1?'s':'')+'</div>';
-  if(grav.top_3&&grav.top_3.length){html+=grav.top_3.map(function(id){return '<div style="padding:4px 0;font-size:13px">\u2022 '+id+'</div>'}).join('')}
-  if(grav.trust_debt_aud)html+='<div style="margin-top:6px;color:var(--warning);font-size:12px">Trust debt: $'+Math.round(grav.trust_debt_aud)+'</div>';
-  document.getElementById('bGravity').innerHTML=html||'<span style="color:var(--text-muted)">Gravity field clear</span>';
-
-  /* Drift */
-  var drift=b.drift||{};
-  if(drift.alert){
-    var sev=drift.severity||'low';
-    var col=sev==='high'?'var(--error)':sev==='medium'?'var(--warning)':'var(--text-muted)';
-    document.getElementById('bDrift').innerHTML='<div style="color:'+col+';font-weight:600">\u26a0 '+drift.severity+' severity</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">'+escHtml(drift.recommendation||'')+'</div>';
-  }else{
-    document.getElementById('bDrift').innerHTML='<span style="color:var(--success)">\u2714 No drift detected</span>';
-  }
-
-  /* Rest */
-  var rest=b.rest_suggestion||{};
-  if(rest.should_rest){
-    document.getElementById('bRest').innerHTML='<div style="color:var(--warning);font-weight:600">\u{1F4A4} Rest suggested</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">'+escHtml(rest.reason||'')+'</div>';
-  }else{
-    document.getElementById('bRest').innerHTML='<span style="color:var(--success)">\u2714 Energy levels fine</span>';
-  }
-
-  /* News */
-  var news=(b.news||{}).items||[];
-  document.getElementById('bNews').innerHTML=news.length?news.slice(0,6).map(function(n){
-    return '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="'+escHtml(n.url||'#')+'" target="_blank" style="color:var(--text-em);text-decoration:none;font-size:13px">'+escHtml(n.title||'')+'</a><div style="font-size:11px;color:var(--text-muted)">'+escHtml(n.source||'')+' \u00B7 '+escHtml(n.published||'')+'</div></div>'
-  }).join(''):'<span style="color:var(--text-muted)">No news items — check RSS feed config</span>';
-
-  /* POI */
-  var poi=(b.people||{}).items||[];
-  document.getElementById('bPoi').innerHTML=poi.length?poi.slice(0,5).map(function(p){
-    return '<div style="padding:4px 0;font-size:13px">\u2022 '+escHtml(p.name||p.person||'')+'</div>'
-  }).join(''):'<span style="color:var(--text-muted)">No POI activity</span>';
-
-  /* LinkedIn */
-  var li=(b.linkedin||{}).items||[];
-  document.getElementById('bLinkedin').innerHTML=li.length?li.slice(0,5).map(function(n){
-    return '<div style="padding:6px 0;border-bottom:1px solid var(--border)"><a href="'+escHtml(n.url||'#')+'" target="_blank" style="color:var(--text-em);text-decoration:none;font-size:13px">'+escHtml(n.title||'')+'</a><div style="font-size:11px;color:var(--text-muted)">'+escHtml(n.source||'')+'</div></div>'
-  }).join(''):'<span style="color:var(--text-muted)">No LinkedIn/industry items</span>';
-
-  /* Deadlines */
-  var dls=(b.deadlines||{}).items||[];
-  document.getElementById('bDeadlines').innerHTML=dls.length?dls.slice(0,5).map(function(d){
-    var col=d.urgency==='overdue'?'var(--error)':d.urgency==='today'?'var(--warning)':'var(--text-muted)';
-    return '<div style="padding:4px 0;font-size:13px"><span style="color:'+col+';font-weight:600">'+escHtml(d.urgency||'')+'</span> '+escHtml(d.title||'')+'</div>'
-  }).join(''):'<span style="color:var(--text-muted)">No deadlines this week</span>';
-
-  /* Module summaries */
-  var mHtml='';
-  var modSections=[
-    ['Cartographer',b.cartographer],['Amplifier',b.amplifier],['Sentinel',b.sentinel],
-    ['Chronicle',b.chronicle],['Innovator',b.innovator],['Learning Radar',b.learning_radar],
-    ['Constellation',b.constellation],['Thinking',b.thinking_frameworks],['Orchestrator',b.orchestrator]
-  ];
-  modSections.forEach(function(ms){
-    var name=ms[0],data=ms[1]||{};
-    var summary=JSON.stringify(data).length>2?Object.keys(data).length+' fields':'idle';
-    mHtml+='<div style="padding:6px;background:var(--surface-2);border-radius:var(--r-md);font-size:12px"><span style="font-weight:600;color:var(--text-em)">'+name+'</span><div style="color:var(--text-muted);margin-top:2px">'+summary+'</div></div>';
-  });
-  document.getElementById('bModules').innerHTML=mHtml;
-}
-
 /* === Load Dashboard Data === */
 async function loadAll(){
   try{
@@ -849,6 +746,73 @@ if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
 function toggleMic(){
   if(!recognition){addMsg("Speech not available in this browser. Type instead.",'elaine');return}
   if(isRec){recognition.stop()}else{recognition.start();isRec=true;document.getElementById('micBtn').classList.add('recording')}
+}
+
+/* === Morning Brief === */
+var briefLoading=false;
+
+function renderBriefContent(text){
+  /* Convert markdown-ish formatting: ### headings, **bold**, - bullets, \n */
+  var html=escHtml(text)
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+  return html;
+}
+
+async function loadBriefing(){
+  if(briefLoading)return;
+  briefLoading=true;
+  document.getElementById('briefRefreshBtn').disabled=true;
+  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Loading latest brief...</div>';
+  try{
+    var r=await api('GET','/api/morning-briefing/latest');
+    if(r.error){
+      document.getElementById('briefContent').innerHTML='<span style="color:var(--text-muted)">'+escHtml(r.error)+'</span>';
+      document.getElementById('briefMeta').textContent='No briefing available.';
+      document.getElementById('briefStatus').innerHTML='';
+    }else{
+      document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content.');
+      document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'unknown');
+      var ok=r.ollama_ok;
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+      /* Update dashboard "This Morning" card */
+      var snippet=(r.briefing||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('###')}).slice(0,2).join(' ').substring(0,120);
+      document.getElementById('dBriefOpen').textContent=snippet||"Brief available - click Full Brief to read.";
+      document.getElementById('dBriefSummary').textContent='Generated '+(r.generated_at||'').substring(0,10)+(ok?' via Ollama':' (fallback)');
+    }
+  }catch(e){
+    document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Failed to load: '+escHtml(e.message)+'</span>';
+    document.getElementById('dBriefOpen').textContent='No brief loaded yet.';
+    document.getElementById('dBriefSummary').textContent='Click Full Brief to generate one.';
+  }
+  briefLoading=false;
+  document.getElementById('briefRefreshBtn').disabled=false;
+}
+
+async function generateBriefing(){
+  if(briefLoading)return;
+  briefLoading=true;
+  document.getElementById('briefGenBtn').disabled=true;
+  document.getElementById('briefRefreshBtn').disabled=true;
+  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Generating brief via Ollama (this may take a minute)...</div>';
+  document.getElementById('briefMeta').textContent='Generating...';
+  try{
+    var r=await api('POST','/api/morning-briefing/generate');
+    if(r.error){
+      document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">'+escHtml(r.error)+'</span>';
+    }else{
+      document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content returned.');
+      document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'just now');
+      var ok=r.ollama_ok;
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+    }
+  }catch(e){
+    document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Generation failed: '+escHtml(e.message)+'</span>';
+  }
+  briefLoading=false;
+  document.getElementById('briefGenBtn').disabled=false;
+  document.getElementById('briefRefreshBtn').disabled=false;
 }
 
 /* === Quick Check === */
