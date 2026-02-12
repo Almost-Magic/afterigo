@@ -37,6 +37,13 @@ features:
     path: /api/receipts/scan/health
     expected_status: 200
 
+  - id: receipt_confirm_flow
+    name: Receipt confirm/reject flow (draft → confirmed/rejected)
+    check: http_get
+    path: /api/receipts/summary
+    expected_status: 200
+    expected_contains: drafts
+
   - id: ask_genie_ai
     name: Ask Genie AI chat
     check: http_get
