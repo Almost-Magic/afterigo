@@ -91,7 +91,11 @@ Source and Brand/
 ├── Finance App/
 │   └── Genie/             → AI bookkeeper v2.1
 ├── Peterman/              → Brand intelligence
-├── Ripple/                → CRM (not yet built — email/calendar goes here)
+├── Ripple CRM and Spark Marketing/  → Relationship Intelligence CRM (Phase 1 complete)
+│   ├── backend/           → FastAPI + async SQLAlchemy + Alembic
+│   ├── frontend/          → React 19 + Vite 7 + Tailwind v4
+│   ├── tests/             → Proof (Playwright) E2E tests
+│   └── docs/              → Specs, build plan, roadmap
 ├── Code Orchestrator/     → Code management
 └── local-ai-stack/        → Docker infrastructure
 ```
@@ -115,7 +119,9 @@ Source and Brand/
 | 8000 | Genie | AI bookkeeper |
 | 8188 | ComfyUI | Image generation |
 | 8420 | Signal Hunter | **NOT The Workshop. Separate app.** |
-| 9000 | The Supervisor | **NEW — to be built** |
+| 3100 | Ripple CRM Frontend | React 19 + Vite |
+| 8100 | Ripple CRM API | FastAPI backend, PostgreSQL |
+| 9000 | The Supervisor | Centralised runtime manager |
 
 ### Docker Infrastructure (local-ai-stack)
 
@@ -248,6 +254,24 @@ Build engine. Run against all apps. Learning Assistant Tailscale. Junk Drawer au
 
 ---
 
+## SERVICE MANAGER
+
+A PowerShell service manager script exists at `Source and Brand/services.ps1`:
+
+```powershell
+.\services.ps1 status              # Show all service health
+.\services.ps1 start all           # Start all services
+.\services.ps1 stop all            # Stop all services
+.\services.ps1 restart genie       # Restart single service
+.\services.ps1 restart supervisor  # Restart Supervisor
+```
+
+Service keys: `genie`, `genie-fe`, `supervisor`, `workshop`, `elaine`, `costanza`, `learning`, `writer`, `junk-be`, `junk-api`, `author`, `peterman`, `ripple`, `ripple-fe`
+
+**Use this script instead of manual process killing.** It handles port detection, process cleanup, health verification, and minimised window launching.
+
+---
+
 ## OPERATIONS RHYTHM
 
 **Daily (automated):** Supervisor monitors (30s). Auto-restarts. Morning Briefing. Synthetic test 6 AM.
@@ -279,8 +303,9 @@ Build engine. Run against all apps. Learning Assistant Tailscale. Junk Drawer au
 | **Costanza** | Mental models engine (150+ frameworks) |
 | **Peterman** | Brand intelligence |
 | **Genie** | AI bookkeeper |
-| **The Supervisor** | Runtime manager (GPU, models, health) — TO BUILD |
-| **The Foreperson** | Quality inspector (promised vs delivered) — TO BUILD |
+| **Ripple CRM** | Relationship Intelligence Engine (API :8100, UI :3100) |
+| **The Supervisor** | Runtime manager (GPU, models, health) — :9000 |
+| **The Foreperson** | Quality inspector (promised vs delivered) |
 | **The Workshop** | Central launcher (App 0) |
 | **n8n** | Automation backbone |
 | **Thalaiva** | Claude #1 (The Leader) — predecessor, built the ecosystem |
