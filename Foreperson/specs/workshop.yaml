@@ -46,8 +46,10 @@ features:
 
   - id: auto_start_boot
     name: Auto-start on machine boot
-    check: manual_ui_check
-    notes: No Task Scheduler entry or nssm service found — not yet configured
+    check: command_check
+    command: dir "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\amtl-workshop-start.bat"
+    expected_contains: amtl-workshop-start.bat
+    notes: Batch file in Windows Startup folder launches Workshop via services.ps1 on logon
 
   - id: status_indicators
     name: Live status indicators (green/amber/grey dots)

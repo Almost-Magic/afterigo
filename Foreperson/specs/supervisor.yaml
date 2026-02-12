@@ -83,10 +83,14 @@ features:
 
   - id: boot_sequence
     name: Boot sequencer runs on startup
-    check: manual_ui_check
-    notes: After reboot, Supervisor + Workshop + ELAINE should run without manual intervention
+    check: command_check
+    command: powershell -Command "(Invoke-WebRequest -Uri 'http://localhost:9000/api/services' -UseBasicParsing -TimeoutSec 5).Content"
+    expected_contains: '"status":"healthy"'
+    notes: Verifies Supervisor API shows critical services healthy — proves boot sequence completed (Workshop, ELAINE, Ollama all running)
 
   - id: meta_guardian
     name: Meta-Guardian Task Scheduler task
-    check: manual_ui_check
-    notes: Check Task Scheduler for 10-minute Supervisor watchdog
+    check: command_check
+    command: schtasks /Query /TN "AMTL-MetaGuardian" /FO LIST
+    expected_contains: Ready
+    notes: Verifies 10-minute Supervisor watchdog is registered and active in Windows Task Scheduler

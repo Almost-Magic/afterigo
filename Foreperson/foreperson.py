@@ -284,7 +284,10 @@ def audit_app(spec):
 
     total = len(results)
     working = counts.get(STATUS_WORKING, 0)
+    not_tested = counts.get(STATUS_NOT_TESTED, 0)
     score = round((working / total * 100) if total > 0 else 0, 1)
+    achievable = total - not_tested
+    max_achievable_score = round((working / achievable * 100) if achievable > 0 else 0, 1)
 
     return {
         "app": app_name,
@@ -300,9 +303,11 @@ def audit_app(spec):
             "working": counts.get(STATUS_WORKING, 0),
             "partial": counts.get(STATUS_PARTIAL, 0),
             "missing": counts.get(STATUS_MISSING, 0),
-            "not_tested": counts.get(STATUS_NOT_TESTED, 0),
+            "not_tested": not_tested,
             "not_implemented": counts.get(STATUS_NOT_IMPL, 0),
             "score": score,
+            "achievable": achievable,
+            "max_achievable_score": max_achievable_score,
         },
     }
 
@@ -333,12 +338,16 @@ def run_full_audit(app_filter=None):
     # Overall summary
     all_total = sum(a["summary"]["total"] for a in report["apps"])
     all_working = sum(a["summary"]["working"] for a in report["apps"])
+    all_achievable = sum(a["summary"]["achievable"] for a in report["apps"])
     overall_score = round((all_working / all_total * 100) if all_total > 0 else 0, 1)
+    overall_max_achievable = round((all_working / all_achievable * 100) if all_achievable > 0 else 0, 1)
     report["overall"] = {
         "total_apps": len(report["apps"]),
         "total_features": all_total,
         "total_working": all_working,
         "overall_score": overall_score,
+        "total_achievable": all_achievable,
+        "overall_max_achievable_score": overall_max_achievable,
     }
 
     return report
@@ -416,6 +425,9 @@ def print_report(report):
 
         print(f"\n  {status_icon} {app['app']} (:{app['port']})")
         print(f"    Score: [{bar}] {score}%")
+        if s.get("achievable", s["total"]) < s["total"]:
+            mas = s.get("max_achievable_score", score)
+            print(f"    Achievable: {s['working']}/{s['achievable']} testable ({mas}%)  [{s['not_tested']} manual-only]")
         print(f"    {s['working']}\u2705  {s['partial']}\u26a0\ufe0f  {s['missing']}\u274c  {s['not_tested']}\U0001f507  {s['not_implemented']}\U0001f6a7")
 
         for feat in app["features"]:
@@ -429,6 +441,8 @@ def print_report(report):
     o = report.get("overall", {})
     print("\n" + "-" * 70)
     print(f"  OVERALL: {o.get('total_working', 0)}/{o.get('total_features', 0)} features working across {o.get('total_apps', 0)} apps ({o.get('overall_score', 0)}%)")
+    if o.get("total_achievable", o.get("total_features", 0)) < o.get("total_features", 0):
+        print(f"  ACHIEVABLE: {o.get('total_working', 0)}/{o.get('total_achievable', 0)} testable features ({o.get('overall_max_achievable_score', 0)}%)")
     print("=" * 70 + "\n")
 
 

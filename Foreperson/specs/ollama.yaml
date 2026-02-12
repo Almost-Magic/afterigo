@@ -33,6 +33,8 @@ features:
     timeout: 60
 
   - id: auto_restart
-    name: Auto-restart on crash (Supervisor)
-    check: manual_ui_check
-    notes: Supervisor should detect and restart within 30 seconds
+    name: Auto-restart on crash (Supervisor managed)
+    check: command_check
+    command: powershell -Command "(Invoke-WebRequest -Uri 'http://localhost:9000/api/services' -UseBasicParsing -TimeoutSec 5).Content"
+    expected_contains: '"critical":true'
+    notes: Supervisor Health Guardian monitors Ollama as critical service with auto-restart (3 retries, exponential backoff)

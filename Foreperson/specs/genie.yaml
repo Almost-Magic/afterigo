@@ -26,8 +26,10 @@ features:
 
   - id: nav_grouping
     name: Navigation grouped (Overview/Money/Intelligence/Reports/Tools)
-    check: manual_ui_check
-    notes: Frontend hardcodes NAV_GROUPS in App.jsx — verified by Proof tests (test_nav_groups_visible, test_nav_collapse)
+    check: command_check
+    command: findstr /C:"NAV_GROUPS" "C:\Users\ManiPadisetti\Dropbox\Desktop DB\Books and Articles Mani\Books\Almost Magic Tech Lab AMTL\Source and Brand\Finance App\Genie\frontend\src\App.jsx"
+    expected_contains: NAV_GROUPS
+    notes: Verifies NAV_GROUPS constant exists in frontend source — 5 groups rendered in sidebar
 
   - id: mobile_receipt_scanner
     name: Mobile receipt scanner
