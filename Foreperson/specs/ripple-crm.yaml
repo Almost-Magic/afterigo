@@ -282,3 +282,18 @@ features:
     expected_status: 200
     expected_contains: snapshot_date
     timeout: 60
+
+  # Phase 2.5: Attention Allocation Engine
+  - id: attention_summary
+    name: Attention allocation summary
+    check: http_get
+    path: /api/attention/summary
+    expected_status: 200
+    expected_contains: allocations
+
+  - id: attention_recommendations
+    name: Attention recommendations
+    check: http_get
+    path: /api/attention/recommendations
+    expected_status: 200
+    expected_contains: items
