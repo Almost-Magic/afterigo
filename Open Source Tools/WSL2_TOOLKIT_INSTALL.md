@@ -426,7 +426,7 @@ deactivate
 | Stirling PDF | Swiss Army Knife already has PDF tools |
 | Caddy | Already installed — fix don't reinstall |
 | LiteLLM | Assumes cloud APIs |
-| Open WebUI | Low priority — using Claude Max / ChatGPT in browser |
+| Open WebUI | ~~Low priority~~ INSTALLED — Mani requested 13 Feb 2026, port 3080 |
 
 ---
 
@@ -452,6 +452,17 @@ deactivate
 | 19999 | Netdata | Phase 2 |
 | 8501 | annotateai Web UI (optional) | Phase 5 |
 | 3333 | Ghostfolio | Finance Tools |
+| 3015 | Formbricks | Tier 1 |
+| 3080 | Open WebUI | Tier 1 |
+| 4200 | Postiz | Tier 1 |
+| 8084 | Matomo | Tier 1 |
+| 8088 | Apache Superset | Tier 1 |
+| 8222 | Vaultwarden | Tier 1 |
+| 9002 | Penpot | Tier 1 |
+| 9050 | Tor SOCKS5 Proxy | OSINT Layer |
+| 8118 | Privoxy HTTP Proxy | OSINT Layer |
+| 8282 | IVRE Network Recon | OSINT Layer |
+| 8284 | HIBP Offline Checker | OSINT Layer |
 
 ---
 
@@ -482,6 +493,22 @@ deactivate
 | 6 | FinceptTerminal CLI | DONE | 2026-02-13 | v2.0.8 in ~/fincept-env. Open-source Bloomberg alternative. Market analytics, economic data. |
 | 6 | OpenBB | DONE | 2026-02-13 | v4.6.0 in ~/fincept-env. Investment research platform. 30+ provider extensions (yfinance, FRED, SEC, OECD). |
 | 6 | Ghostfolio (Docker) | DONE | 2026-02-13 | Port 3333. Portfolio tracker. 3 containers (app + postgres + redis). Health OK. |
+| T1 | Open WebUI | DONE | 2026-02-13 | Port 3080. Chat UI for Ollama. 1 container. Healthy. Connected to Ollama via gateway 172.18.240.1:11434. |
+| T1 | Vaultwarden | DONE | 2026-02-13 | Port 8222. Bitwarden-compatible password manager. 1 container. Healthy. |
+| T1 | Formbricks | DONE | 2026-02-13 | Port 3015 (NOT 3005 — Junk Drawer conflict). 3 containers (app + pgvector PG + Redis). Compose at ~/formbricks/. Required pgvector/pgvector:pg16 for vector migration + CRON_SECRET env var. |
+| T1 | Matomo | DONE | 2026-02-13 | Port 8084. Privacy-first analytics. 1 container. Needs MySQL/MariaDB for full setup. |
+| T1 | Penpot | DONE | 2026-02-13 | Port 9002. Design tool (Figma alt). 6 containers. Compose at /tmp/penpot/docker/images/. Telemetry off. |
+| T1 | Apache Superset | DONE | 2026-02-13 | Port 8088. BI/data viz. 5 containers (pre-built images via docker-compose-image-tag.yml). App healthy (200). Workers have psycopg2 warning — core dashboards work fine. Default: admin/admin. |
+| T1 | Postiz | DONE | 2026-02-13 | Port 4200. Social media scheduler. 3 containers (app + own PG + Redis). Compose at ~/postiz/. |
+| T1 | Homepage update | DONE | 2026-02-13 | Added "Productivity & Intelligence" category with all 7 new tools. Restarted. |
+| T1 | Uptime Kuma monitors | MANUAL | 2026-02-13 | Socket.IO API — must add monitors manually via http://localhost:3001. See AMTL_TIER1_TOOLS_INSTALL.md. |
+| OSINT | Tor SOCKS5 Proxy | DONE | 2026-02-13 | Port 9050. peterdavehello/tor-socks-proxy. IsTor:true verified. Container: tor-socks-proxy. |
+| OSINT | Privoxy HTTP Proxy | DONE | 2026-02-13 | Port 8118. vimagick/privoxy. Forwards to Tor via --link. IsTor:true via HTTP proxy verified. |
+| OSINT | IVRE Network Recon | DONE | 2026-02-13 | Port 8282. 5 containers (web, uwsgi, doku, MongoDB, client). HTTP 200 verified. Compose at /tmp/ivre-src/docker/docker-compose-amtl.yml. |
+| OSINT | HIBP Offline Checker | DONE | 2026-02-13 | Port 8284. Custom Flask + gunicorn. Placeholder responses until 35GB DB downloaded. download-hibp.sh at ~/hibp-checker/. |
+| OSINT | SpiderFoot Tor | DONE | 2026-02-13 | Connected to osint-net Docker network. tor-socks-proxy resolves from SpiderFoot. Configure SOCKS5 proxy via web UI at http://localhost:5009. |
+| OSINT | Homepage update | DONE | 2026-02-13 | Added "Security & OSINT" category with Tor, Privoxy, IVRE, HIBP Checker + existing OpenVAS, Wazuh, SpiderFoot. |
+| OSINT | Workshop update | DONE | 2026-02-13 | Added 4 OSINT tool cards to Open Source Tools grid + SERVICES dict in app.py. |
 
 ---
 

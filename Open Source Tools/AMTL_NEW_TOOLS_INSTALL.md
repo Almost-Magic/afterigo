@@ -556,6 +556,10 @@ Use the Uptime Kuma API or add manually via the web UI.
 | 11434 | Ollama | Existing |
 | 19999 | Netdata | Existing |
 | 3333 | Ghostfolio | **NEW** |
+| 9050 | Tor SOCKS5 Proxy | **OSINT** |
+| 8118 | Privoxy HTTP Proxy | **OSINT** |
+| 8282 | IVRE Network Recon | **OSINT** |
+| 8284 | HIBP Offline Checker | **OSINT** |
 
 ---
 
@@ -577,6 +581,14 @@ Use the Uptime Kuma API or add manually via the web UI.
 | Ghostfolio | INSTALLED | 2026-02-13 | Port 3333, 3 containers (ghostfolio, gf-postgres, gf-redis). Health: OK. Create admin on first visit. |
 | Homepage update | DONE | 2026-02-13 | Added "Market Intelligence" category with FinceptTerminal, Ghostfolio, OpenBB. |
 | Workshop update | DONE | 2026-02-13 | Added FinceptTerminal + Ghostfolio cards in CK section, backend SERVICES dict updated. |
+| Tor SOCKS5 Proxy | INSTALLED | 2026-02-13 | Port 9050. peterdavehello/tor-socks-proxy. IsTor:true verified. Anonymous SOCKS5 routing for all OSINT tools. |
+| Privoxy HTTP Proxy | INSTALLED | 2026-02-13 | Port 8118. vimagick/privoxy. Converts SOCKS5 to HTTP proxy. Forwards through Tor. |
+| IVRE Network Recon | INSTALLED | 2026-02-13 | Port 8282. Self-hosted Shodan alternative. 5 containers (web, uwsgi, doku, MongoDB, client). HTTP 200. |
+| HIBP Offline Checker | INSTALLED | 2026-02-13 | Port 8284. Custom Flask app. Placeholder until 35GB hash DB downloaded. 3 endpoints: check-password, check-hash, health. |
+| SpiderFoot Tor routing | CONFIGURED | 2026-02-13 | Connected to osint-net Docker network. tor-socks-proxy reachable. Must set SOCKS5 proxy in web UI (http://localhost:5009 > Settings). |
+| Homepage OSINT | DONE | 2026-02-13 | Added "Security & OSINT" category with all new tools. |
+| Workshop OSINT | DONE | 2026-02-13 | Added 4 OSINT tool cards (Tor, Privoxy, IVRE, HIBP) to OSS grid. |
+| DARKWEB_OSINT_INTEGRATION.md | CREATED | 2026-02-13 | Full documentation: Tor routing, Ahmia API, SpiderFoot config, Identity Atlas integration, ethical guidelines. |
 
 ---
 

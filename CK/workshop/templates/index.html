@@ -395,6 +395,16 @@
             <div class="app-grid" id="grid-infra"></div>
         </div>
 
+        <!-- Open Source Tools (Docker/WSL2) -->
+        <div class="section" id="section-oss">
+            <div class="section-header">
+                <h2>🐳 Open Source Tools</h2>
+                <div class="section-line"></div>
+                <span class="section-count">Docker Containers — WSL2</span>
+            </div>
+            <div class="app-grid" id="grid-oss"></div>
+        </div>
+
         <!-- External Services -->
         <div class="section" id="section-external">
             <div class="section-header">
@@ -729,6 +739,119 @@
                     favicon: { type: 'symbol', bg: '#1e1b4b', fg: '#6366f1', symbol: '📊' }
                 }
             ],
+            oss: [
+                {
+                    id: 'open-webui',
+                    name: 'Open WebUI',
+                    desc: 'Chat UI for local LLMs via Ollama',
+                    url: 'http://localhost:3080',
+                    port: '3080',
+                    status: 'live',
+                    accent: '#34d399',
+                    favicon: { type: 'text', bg: '#0f3d2e', fg: '#34d399', letter: 'O', font: 'sans-serif' }
+                },
+                {
+                    id: 'vaultwarden',
+                    name: 'Vaultwarden',
+                    desc: 'Self-hosted password manager',
+                    url: 'http://localhost:8222',
+                    port: '8222',
+                    status: 'live',
+                    accent: '#60a5fa',
+                    favicon: { type: 'symbol', bg: '#0c2d4a', fg: '#60a5fa', symbol: '🔐' }
+                },
+                {
+                    id: 'formbricks',
+                    name: 'Formbricks',
+                    desc: 'Surveys & feedback platform',
+                    url: 'http://localhost:3015',
+                    port: '3015',
+                    status: 'live',
+                    accent: '#a78bfa',
+                    favicon: { type: 'text', bg: '#2d1f5e', fg: '#a78bfa', letter: 'F', font: 'sans-serif' }
+                },
+                {
+                    id: 'matomo',
+                    name: 'Matomo',
+                    desc: 'Privacy-first web analytics',
+                    url: 'http://localhost:8084',
+                    port: '8084',
+                    status: 'live',
+                    accent: '#22c55e',
+                    favicon: { type: 'text', bg: '#0a2d15', fg: '#22c55e', letter: 'M', font: 'sans-serif' }
+                },
+                {
+                    id: 'penpot',
+                    name: 'Penpot',
+                    desc: 'Design & prototyping (Figma alt)',
+                    url: 'http://localhost:9002',
+                    port: '9002',
+                    status: 'live',
+                    accent: '#38bdf8',
+                    favicon: { type: 'text', bg: '#0c2d48', fg: '#38bdf8', letter: 'P', font: 'sans-serif' }
+                },
+                {
+                    id: 'superset',
+                    name: 'Apache Superset',
+                    desc: 'BI dashboards & data viz',
+                    url: 'http://localhost:8088',
+                    port: '8088',
+                    status: 'live',
+                    accent: '#f59e0b',
+                    favicon: { type: 'text', bg: '#3d2f0a', fg: '#f59e0b', letter: 'S', font: 'sans-serif' }
+                },
+                {
+                    id: 'postiz',
+                    name: 'Postiz',
+                    desc: 'Social media scheduler',
+                    url: 'http://localhost:4200',
+                    port: '4200',
+                    status: 'live',
+                    accent: '#ec4899',
+                    favicon: { type: 'text', bg: '#3d1530', fg: '#ec4899', letter: 'P', font: 'sans-serif' }
+                },
+                // --- Security & OSINT ---
+                {
+                    id: 'tor-proxy',
+                    name: 'Tor Proxy',
+                    desc: 'SOCKS5 anonymous routing',
+                    url: null,
+                    port: '9050',
+                    status: 'live',
+                    accent: '#7c3aed',
+                    favicon: { type: 'symbol', bg: '#1e0a3d', fg: '#7c3aed', symbol: '🧅' }
+                },
+                {
+                    id: 'privoxy',
+                    name: 'Privoxy',
+                    desc: 'HTTP proxy via Tor',
+                    url: null,
+                    port: '8118',
+                    status: 'live',
+                    accent: '#7c3aed',
+                    favicon: { type: 'text', bg: '#1e0a3d', fg: '#7c3aed', letter: 'P', font: 'sans-serif' }
+                },
+                {
+                    id: 'ivre',
+                    name: 'IVRE',
+                    desc: 'Network recon (self-hosted Shodan)',
+                    url: 'http://localhost:8282',
+                    port: '8282',
+                    status: 'live',
+                    accent: '#f87171',
+                    favicon: { type: 'symbol', bg: '#3d1515', fg: '#f87171', symbol: '🔭' }
+                },
+                {
+                    id: 'hibp-checker',
+                    name: 'HIBP Checker',
+                    desc: 'Offline password breach check',
+                    url: 'http://localhost:8284/api/health',
+                    port: '8284',
+                    status: 'live',
+                    accent: '#f59e0b',
+                    favicon: { type: 'symbol', bg: '#3d2f0a', fg: '#f59e0b', symbol: '🔑' }
+                }
+            ],
             infra: [
                 {
                     id: 'ollama',
@@ -996,7 +1119,7 @@
         // RENDER ALL GRIDS
         // ================================================================
         function renderAll() {
-            ['ck', 'infra', 'external'].forEach(section => {
+            ['ck', 'oss', 'infra', 'external'].forEach(section => {
                 const grid = document.getElementById(`grid-${section}`);
                 grid.innerHTML = '';
                 apps[section].forEach(app => grid.appendChild(renderCard(app)));

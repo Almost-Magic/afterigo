@@ -71,6 +71,12 @@ SERVICES = {
     # Finance & Market Data
     'fincept':            {'name': 'FinceptTerminal',     'port': None,  'url': None,                     'type': 'ck',    'path': None, 'cmd': None},
     'ghostfolio':         {'name': 'Ghostfolio',          'port': 3333,  'url': 'http://localhost:3333',  'type': 'infra', 'health': '/api/v1/health', 'docker': 'ghostfolio'},
+
+    # Security & OSINT
+    'tor-proxy':          {'name': 'Tor Proxy',           'port': 9050,  'url': None,                     'type': 'infra', 'docker': 'tor-socks-proxy'},
+    'privoxy':            {'name': 'Privoxy',             'port': 8118,  'url': None,                     'type': 'infra', 'docker': 'privoxy'},
+    'ivre':               {'name': 'IVRE',                'port': 8282,  'url': 'http://localhost:8282',  'type': 'infra', 'docker': 'ivreweb'},
+    'hibp-checker':       {'name': 'HIBP Checker',        'port': 8284,  'url': 'http://localhost:8284',  'type': 'infra', 'health': '/api/health', 'docker': 'hibp-checker'},
 }
 
 # Track launched processes
