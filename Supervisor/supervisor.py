@@ -542,16 +542,14 @@ class CloudFallback:
 # ═══════════════════════════════════════════════════════════════════════════
 
 class LLMRouter:
-    """Routes LLM requests: Ollama first, cloud fallback on failure."""
+    """Routes LLM requests to Ollama with auto-restart on failure."""
 
-    def __init__(self, registry, gpu_scheduler, cloud_fallback):
+    def __init__(self, registry, gpu_scheduler):
         self.registry = registry
         self.gpu = gpu_scheduler
-        self.cloud = cloud_fallback
         self.metrics = {
             "total_requests": 0,
             "local_success": 0,
-            "cloud_fallback": 0,
             "errors": 0,
             "latencies_ms": deque(maxlen=100),
         }
@@ -622,33 +620,34 @@ class LLMRouter:
                 logger.warning(f"Ollama attempt {attempt + 1} failed: {last_error}. Retrying in {delay}s...")
                 time.sleep(delay)
 
-        # All Ollama attempts failed — try cloud
-        logger.warning(f"Ollama failed after 3 attempts. Trying cloud fallback...")
-        messages = body.get("messages", [])
-        if not messages and "prompt" in body:
-            messages = [{"role": "user", "content": body["prompt"]}]
+        # All Ollama attempts failed — notify and suggest browser fallback
+        logger.critical(f"Ollama failed after 3 attempts for {ollama_name}: {last_error}")
 
-        model_role = self.registry.get_role_for_model(ollama_name)
-        cloud_result, errors = self.cloud.chat(messages, model_role=model_role)
-
-        if cloud_result:
-            latency = int((time.time() - start) * 1000)
-            with self._lock:
-                self.metrics["cloud_fallback"] += 1
-                self.metrics["latencies_ms"].append(latency)
-            logger.info(f"LLM request served via cloud ({cloud_result.get('_source')}, {latency}ms)")
-            return cloud_result, 200
-
-        # Everything failed
         with self._lock:
             self.metrics["errors"] += 1
 
-        error_detail = {
-            "error": "All AI backends unavailable",
-            "tried": [f"ollama (3 attempts, last: {last_error})"] + (errors or []),
-            "suggestion": "Check Ollama status or set ANTHROPIC_API_KEY / OPENAI_API_KEY",
+        # Write alert for ELAINE / friction-log
+        alert = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "type": "ollama_failure",
+            "model": ollama_name,
+            "last_error": last_error,
+            "message": f"Ollama failed after 3 attempts. Use Claude in browser: https://claude.ai",
         }
-        logger.error(f"All backends failed for {ollama_name}: {error_detail}")
+        try:
+            alerts_path = LOGS_DIR / "alerts.jsonl"
+            with open(alerts_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(alert) + "\n")
+        except Exception:
+            pass
+
+        error_detail = {
+            "error": "Ollama unavailable after 3 attempts",
+            "last_error": last_error,
+            "suggestion": "Ollama is down. Use Claude directly at https://claude.ai",
+            "action": "ELAINE will notify you. Supervisor is attempting to restart Ollama.",
+        }
+        logger.error(f"Returning fallback notice for {ollama_name}")
         return error_detail, 503
 
     def get_metrics(self):
@@ -657,7 +656,6 @@ class LLMRouter:
             return {
                 "total_requests": self.metrics["total_requests"],
                 "local_success": self.metrics["local_success"],
-                "cloud_fallback": self.metrics["cloud_fallback"],
                 "errors": self.metrics["errors"],
                 "avg_latency_ms": round(sum(lats) / len(lats)) if lats else 0,
                 "p95_latency_ms": round(sorted(lats)[int(len(lats) * 0.95)] if len(lats) >= 2 else 0),
@@ -1045,7 +1043,6 @@ app.config["JSON_SORT_KEYS"] = False
 # Global instances — initialized in main()
 registry = None
 gpu_scheduler = None
-cloud_fallback = None
 llm_router = None
 service_graph = None
 health_guardian = None
@@ -1192,9 +1189,10 @@ def api_metrics():
 
 @app.route("/api/cloud/costs")
 def api_cloud_costs():
-    if cloud_fallback:
-        return jsonify(cloud_fallback.get_costs_today())
-    return jsonify({"total_usd": 0, "requests": 0})
+    return jsonify({
+        "enabled": False,
+        "note": "Cloud fallback disabled. Use Claude at https://claude.ai when Ollama is down.",
+    })
 
 
 @app.route("/api/boot", methods=["POST"])
@@ -1288,7 +1286,7 @@ def print_status():
 
 
 def main():
-    global registry, gpu_scheduler, cloud_fallback, llm_router
+    global registry, gpu_scheduler, llm_router
     global service_graph, health_guardian, boot_sequencer, START_TIME
 
     parser = argparse.ArgumentParser(
@@ -1311,8 +1309,7 @@ def main():
 
     registry = ModelRegistry()
     gpu_scheduler = GPUScheduler(registry)
-    cloud_fallback = CloudFallback(registry)
-    llm_router = LLMRouter(registry, gpu_scheduler, cloud_fallback)
+    llm_router = LLMRouter(registry, gpu_scheduler)
     service_graph = ServiceGraph()
     health_guardian = HealthGuardian(service_graph)
     boot_sequencer = BootSequencer(service_graph, gpu_scheduler, registry)

@@ -179,12 +179,13 @@ def run_check(feature, base_url):
     # HTTP checks
     path = feature.get("path", "/")
     url = f"{base_url.rstrip('/')}{path}"
+    timeout = feature.get("timeout", 5)
 
     if check_type == "http_get":
-        status_code, body = http_request(url, "GET")
+        status_code, body = http_request(url, "GET", timeout=timeout)
     elif check_type == "http_post":
         post_body = feature.get("body", {})
-        status_code, body = http_request(url, "POST", body=post_body)
+        status_code, body = http_request(url, "POST", body=post_body, timeout=timeout)
     else:
         result["detail"] = f"Unknown check type: {check_type}"
         return result

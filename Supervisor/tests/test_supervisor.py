@@ -84,9 +84,9 @@ def test_import_gpu_scheduler():
     assert GPUScheduler is not None
 
 
-def test_import_cloud_fallback():
-    from supervisor import CloudFallback
-    assert CloudFallback is not None
+def test_import_logs_dir():
+    from supervisor import LOGS_DIR
+    assert LOGS_DIR is not None
 
 
 def test_import_llm_router():
@@ -123,7 +123,7 @@ def test_config_files_exist():
 test("Import supervisor module", test_import_supervisor)
 test("Import ModelRegistry", test_import_model_registry)
 test("Import GPUScheduler", test_import_gpu_scheduler)
-test("Import CloudFallback", test_import_cloud_fallback)
+test("Import LOGS_DIR", test_import_logs_dir)
 test("Import LLMRouter", test_import_llm_router)
 test("Import ServiceGraph", test_import_service_graph)
 test("Import HealthGuardian", test_import_health_guardian)
@@ -141,7 +141,7 @@ print("2. UNIT TESTS")
 print("=" * 60)
 
 from supervisor import (
-    ModelRegistry, GPUScheduler, CloudFallback, LLMRouter,
+    ModelRegistry, GPUScheduler, LLMRouter,
     ServiceGraph, HealthGuardian, BootSequencer
 )
 
@@ -314,50 +314,6 @@ test("On-demand services flagged", test_on_demand_services)
 test("Service graph to_dict", test_service_graph_to_dict)
 test("Restart policy configured", test_restart_policy)
 
-# ── Cloud Fallback Tests ─────────────────────────────────────────────────
-
-print("\n  --- Cloud Fallback ---")
-
-
-def test_cloud_fallback_init():
-    reg = ModelRegistry()
-    cf = CloudFallback(reg)
-    assert cf is not None
-
-
-def test_cloud_costs_tracking():
-    reg = ModelRegistry()
-    cf = CloudFallback(reg)
-    # Simulate a cost entry
-    cf._log_cost("anthropic", "claude-sonnet-4-20250514", {
-        "input_tokens": 100, "output_tokens": 50
-    })
-    costs = cf.get_costs_today()
-    assert costs["requests"] >= 1
-
-
-def test_cloud_fallback_no_key():
-    """Cloud fallback should gracefully skip when no API key is set."""
-    reg = ModelRegistry()
-    cf = CloudFallback(reg)
-    # Temporarily clear keys
-    old_anthropic = os.environ.pop("ANTHROPIC_API_KEY", None)
-    old_openai = os.environ.pop("OPENAI_API_KEY", None)
-    try:
-        result, errors = cf.chat([{"role": "user", "content": "test"}])
-        assert result is None, "Should return None when no keys available"
-        assert len(errors) > 0, "Should report errors about missing keys"
-    finally:
-        if old_anthropic:
-            os.environ["ANTHROPIC_API_KEY"] = old_anthropic
-        if old_openai:
-            os.environ["OPENAI_API_KEY"] = old_openai
-
-
-test("Cloud fallback initializes", test_cloud_fallback_init)
-test("Cloud cost tracking", test_cloud_costs_tracking)
-test("Cloud fallback handles missing API keys", test_cloud_fallback_no_key)
-
 # ── LLM Router Tests ─────────────────────────────────────────────────────
 
 print("\n  --- LLM Router ---")
@@ -366,20 +322,18 @@ print("\n  --- LLM Router ---")
 def test_router_init():
     reg = ModelRegistry()
     gpu = GPUScheduler(reg)
-    cf = CloudFallback(reg)
-    router = LLMRouter(reg, gpu, cf)
+    router = LLMRouter(reg, gpu)
     assert router is not None
 
 
 def test_router_metrics():
     reg = ModelRegistry()
     gpu = GPUScheduler(reg)
-    cf = CloudFallback(reg)
-    router = LLMRouter(reg, gpu, cf)
+    router = LLMRouter(reg, gpu)
     m = router.get_metrics()
     assert m["total_requests"] == 0
     assert m["local_success"] == 0
-    assert m["cloud_fallback"] == 0
+    assert m["errors"] == 0
 
 
 test("LLM Router initializes", test_router_init)
@@ -433,8 +387,7 @@ def test_router_uses_registry_aliases():
     """Router resolves aliases through registry."""
     reg = ModelRegistry()
     gpu = GPUScheduler(reg)
-    cf = CloudFallback(reg)
-    router = LLMRouter(reg, gpu, cf)
+    router = LLMRouter(reg, gpu)
     # Test that model name gets resolved
     body = {"model": "reasoning", "messages": [{"role": "user", "content": "test"}], "stream": False}
     # We can't fully proxy without Ollama, but we can test resolution
@@ -470,8 +423,7 @@ from supervisor import app as flask_app
 import supervisor as sv
 sv.registry = ModelRegistry()
 sv.gpu_scheduler = GPUScheduler(sv.registry)
-sv.cloud_fallback = CloudFallback(sv.registry)
-sv.llm_router = LLMRouter(sv.registry, sv.gpu_scheduler, sv.cloud_fallback)
+sv.llm_router = LLMRouter(sv.registry, sv.gpu_scheduler)
 sv.service_graph = ServiceGraph()
 sv.health_guardian = HealthGuardian(sv.service_graph)
 sv.boot_sequencer = BootSequencer(sv.service_graph, sv.gpu_scheduler, sv.registry)

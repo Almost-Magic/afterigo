@@ -18,6 +18,7 @@ features:
     check: http_get
     path: /api/status
     expected_status: 200
+    timeout: 30
 
   - id: gpu_endpoint
     name: GPU/VRAM status
@@ -55,6 +56,7 @@ features:
     path: /api/chat
     body: {"model": "gemma2:27b", "messages": [{"role": "user", "content": "hello"}], "stream": false}
     expected_status: 200
+    timeout: 120
 
   - id: proxy_embed
     name: Ollama-compatible /api/embed proxy
@@ -62,6 +64,7 @@ features:
     path: /api/embed
     body: {"model": "nomic-embed-text", "input": "test"}
     expected_status: 200
+    timeout: 30
 
   - id: cloud_fallback
     name: Cloud API fallback when Ollama fails
