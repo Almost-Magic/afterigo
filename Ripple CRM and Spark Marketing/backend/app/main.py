@@ -24,6 +24,7 @@ from app.routers import (
     import_export,
     interactions,
     lead_scoring,
+    meetings,
     notes,
     privacy,
     relationships,
@@ -88,6 +89,10 @@ app.include_router(emails.router, prefix="/api")
 app.include_router(emails.contact_router, prefix="/api")
 app.include_router(emails.deal_router, prefix="/api")
 app.include_router(scoring_rules.router, prefix="/api")
+# Phase 2.1: Meeting Intelligence Hub
+app.include_router(meetings.router, prefix="/api")
+app.include_router(meetings.contact_router, prefix="/api")
+app.include_router(meetings.deal_router, prefix="/api")
 
 
 @app.get("/")

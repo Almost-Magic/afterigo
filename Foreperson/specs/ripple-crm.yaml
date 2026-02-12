@@ -184,3 +184,18 @@ features:
     path: /api/privacy/dsar-requests
     expected_status: 200
     expected_contains: items
+
+  # Phase 2.1: Meeting Intelligence Hub
+  - id: meetings_list
+    name: Meetings list
+    check: http_get
+    path: /api/meetings
+    expected_status: 200
+    expected_contains: items
+
+  - id: meetings_analytics
+    name: Meeting analytics
+    check: http_get
+    path: /api/meetings/analytics
+    expected_status: 200
+    expected_contains: total_meetings
