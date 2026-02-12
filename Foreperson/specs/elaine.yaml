@@ -11,6 +11,7 @@ features:
     check: http_get
     path: /api/health
     expected_status: 200
+    expected_contains: healthy
 
   - id: web_ui
     name: Web UI loads
