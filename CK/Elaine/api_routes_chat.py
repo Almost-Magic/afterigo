@@ -19,6 +19,9 @@ logger = logging.getLogger("elaine.chat")
 
 SUPERVISOR_URL = os.environ.get("SUPERVISOR_URL", "http://localhost:9000")
 LAN_IP = os.environ.get("ELAINE_LAN_IP", "192.168.4.55")
+CHAT_MODEL = os.environ.get("ELAINE_CHAT_MODEL", "llama3.2:3b")
+CHAT_TIMEOUT = 8  # seconds — snappy chat, friendly fallback on timeout
+CHAT_MAX_TOKENS = 150  # concise replies, not essays
 
 # ── AMTL Tool Registry ─────────────────────────────────────────
 
@@ -162,12 +165,7 @@ TOOLS = [
 
 # ── System Prompt for Ollama ────────────────────────────────────
 
-TOOL_LIST_TEXT = "\n".join(
-    f"- {t['name']} ({t['desc']}) — port {t['port']}, URL: {t['url']}"
-    for t in TOOLS
-)
-
-SYSTEM_PROMPT = f"""You are Elaine, Chief of Staff for Mani Padisetti at Almost Magic Tech Lab.
+SYSTEM_PROMPT = """You are Elaine, Chief of Staff for Mani Padisetti at Almost Magic Tech Lab.
 Australian English. Direct, warm, no waffle. Under 150 words unless asked for detail.
 You have 16 intelligence modules: Gravity (priorities), Constellation (people), Cartographer (markets), Amplifier (content), Sentinel (quality), Chronicle (meetings), Innovator (opportunities), Learning Radar, Gatekeeper, Compassion, plus Thinking/Communication/Strategic frameworks.
 Key AMTL tools: Workshop (:5003), Genie (:8000), CK Writer (:5004), Ripple CRM (:3100/:8100), Supervisor (:9000), Ollama (:11434).
@@ -199,14 +197,14 @@ def create_chat_routes():
     def chat():
         """
         Send a message to Ollama via The Supervisor.
-        Body: {"message": "...", "model": "gemma2:27b"}
+        Body: {"message": "...", "model": "llama3.2:3b"}
         """
         data = request.get_json(silent=True) or {}
         message = data.get("message", "").strip()
         if not message:
             return jsonify({"error": "message is required"}), 400
 
-        model = data.get("model", "llama3.1:8b")
+        model = data.get("model", "") or CHAT_MODEL
         history = data.get("history", [])
 
         # Build messages array for Ollama chat API
@@ -215,11 +213,12 @@ def create_chat_routes():
             messages.append(h)
         messages.append({"role": "user", "content": message})
 
-        # Build payload
+        # Build payload — cap response length for snappy chat
         payload = json.dumps({
             "model": model,
             "messages": messages,
             "stream": False,
+            "options": {"num_predict": CHAT_MAX_TOKENS},
         }).encode("utf-8")
 
         # Route through Supervisor first (manages VRAM + model loading),
@@ -229,6 +228,10 @@ def create_chat_routes():
             ("http://localhost:11434/api/chat", "ollama-direct"),
         ]
 
+        import time as _time
+        start = _time.time()
+        last_error = ""
+
         for url, via in targets:
             try:
                 req = urllib.request.Request(
@@ -237,7 +240,7 @@ def create_chat_routes():
                     headers={"Content-Type": "application/json"},
                     method="POST",
                 )
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                with urllib.request.urlopen(req, timeout=CHAT_TIMEOUT) as resp:
                     result = json.loads(resp.read().decode("utf-8"))
 
                 reply = ""
@@ -246,14 +249,28 @@ def create_chat_routes():
                 elif "response" in result:
                     reply = result["response"]
 
+                elapsed = round(_time.time() - start, 1)
+                logger.info("Chat reply via %s in %ss (%s)", via, elapsed, model)
                 return jsonify({
                     "reply": reply,
                     "model": model,
                     "via": via,
+                    "elapsed_s": elapsed,
                 })
             except Exception as e:
-                logger.warning(f"Chat via {via} failed: {e}")
+                last_error = str(e)
+                logger.warning("Chat via %s failed: %s", via, last_error)
                 continue
+
+        # All targets failed
+        elapsed = round(_time.time() - start, 1)
+        if "timed out" in last_error.lower() or "timeout" in last_error.lower():
+            return jsonify({
+                "reply": "Still warming up — try again in a moment.",
+                "model": model,
+                "via": "warming-up",
+                "elapsed_s": elapsed,
+            })
 
         return jsonify({
             "error": "Cannot reach Ollama",
@@ -299,3 +316,41 @@ def create_chat_routes():
         })
 
     return bp
+
+
+def prewarm_chat_model():
+    """Send a tiny prompt to Ollama via Supervisor to pre-load the chat model into VRAM.
+    Run in a background thread on startup so it doesn't block Flask."""
+    import threading
+
+    def _warm():
+        logger.info("Pre-warming chat model %s via Supervisor...", CHAT_MODEL)
+        payload = json.dumps({
+            "model": CHAT_MODEL,
+            "messages": [{"role": "user", "content": "hi"}],
+            "stream": False,
+            "options": {"num_predict": 5},
+        }).encode("utf-8")
+        targets = [
+            f"{SUPERVISOR_URL}/api/chat",
+            "http://localhost:11434/api/chat",
+        ]
+        for url in targets:
+            try:
+                req = urllib.request.Request(
+                    url,
+                    data=payload,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    resp.read()
+                logger.info("Chat model %s pre-warmed via %s", CHAT_MODEL, url)
+                return
+            except Exception as e:
+                logger.warning("Pre-warm via %s failed: %s", url, e)
+                continue
+        logger.warning("Could not pre-warm chat model %s — first message will be slow", CHAT_MODEL)
+
+    t = threading.Thread(target=_warm, daemon=True, name="chat-prewarm")
+    t.start()

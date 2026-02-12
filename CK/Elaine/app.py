@@ -32,7 +32,7 @@ logger = logging.getLogger("elaine.app")
 
 
 OLLAMA_URL = "http://localhost:9000/api/generate"
-OLLAMA_MODEL = "llama3.1:8b"
+OLLAMA_MODEL = "llama3.1:8b"  # Morning Brief only — chat uses qwen3:4b (see api_routes_chat.py)
 ELAINE_DIR = Path(__file__).parent.resolve()
 BRIEFING_TEMPLATE_DIR = ELAINE_DIR / "templates" / "briefing"
 LLM_DB_PATH = Path.home() / ".elaine" / "briefing.db"
