@@ -4,12 +4,14 @@ Port: 5003
 """
 
 import os
+import glob
 import json
 import time
 import logging
+import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from flask import Flask, render_template, jsonify, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import httpx
 
 # ============================================================
@@ -26,7 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 PORT = int(os.getenv('PORT', 5003))
-VERSION = '1.0.0'
+VERSION = '2.0.0'
 
 # ============================================================
 # Paths
@@ -34,6 +36,37 @@ VERSION = '1.0.0'
 
 CK_BASE = os.getenv('CK_BASE', r'C:\Users\ManiPadisetti\Dropbox\Desktop DB\Books and Articles Mani\Books\Almost Magic Tech Lab AMTL\Source and Brand\CK')
 SOURCE_BASE = os.getenv('SOURCE_BASE', r'C:\Users\ManiPadisetti\Dropbox\Desktop DB\Books and Articles Mani\Books\Almost Magic Tech Lab AMTL\Source and Brand')
+DESKTOP_APPS_DIR = os.path.join(CK_BASE, 'desktop-apps')
+DESKTOP_DIST_DIR = os.path.join(DESKTOP_APPS_DIR, 'dist')
+SERVICES_PS1 = os.path.join(SOURCE_BASE, 'services.ps1')
+ELECTRON_CMD = os.path.join(DESKTOP_APPS_DIR, 'node_modules', '.bin', 'electron.cmd')
+ELECTRON_MAIN = os.path.join(DESKTOP_APPS_DIR, 'shared', 'main.js')
+
+# ============================================================
+# Desktop App Registry — maps service IDs to Electron app IDs
+# and their corresponding backend service(s)
+# ============================================================
+
+DESKTOP_APPS = {
+    'elaine':           {'electron_id': 'elaine',        'backend_service': 'elaine',        'name': 'Elaine'},
+    'workshop':         {'electron_id': 'workshop',      'backend_service': 'workshop',      'name': 'The Workshop'},
+    'ripple':           {'electron_id': 'ripple',        'backend_service': 'ripple',        'name': 'Ripple CRM'},
+    'touchstone':       {'electron_id': 'touchstone',    'backend_service': 'touchstone',    'name': 'Touchstone'},
+    'writer':           {'electron_id': 'writer',        'backend_service': 'writer',        'name': 'CK Writer'},
+    'learning':         {'electron_id': 'learning',      'backend_service': 'learning',      'name': 'Learning Assistant'},
+    'peterman':         {'electron_id': 'peterman',      'backend_service': 'peterman',      'name': 'Peterman'},
+    'genie':            {'electron_id': 'genie',         'backend_service': 'genie',         'name': 'Genie'},
+    'costanza':         {'electron_id': 'costanza',      'backend_service': 'costanza',      'name': 'Costanza'},
+    'author-studio':    {'electron_id': 'author-studio', 'backend_service': 'authorstudio',  'name': 'Author Studio'},
+    'junk-drawer':      {'electron_id': 'junk-drawer',   'backend_service': 'junkdrawer',    'name': 'Junk Drawer'},
+    'supervisor':       {'electron_id': 'supervisor',    'backend_service': 'supervisor',    'name': 'Supervisor'},
+}
+
+# Backend-only services (used by "Start Backends Only")
+BACKEND_SERVICES = [
+    'supervisor', 'elaine', 'costanza', 'learning', 'writer',
+    'authorstudio', 'peterman', 'junkdrawer', 'genie', 'ripple', 'touchstone',
+]
 
 # ============================================================
 # Service Registry â€” Single source of truth
@@ -57,6 +90,8 @@ SERVICES = {
     'ripple-api':         {'name': 'Ripple CRM API',      'port': 8100,  'url': 'http://localhost:8100',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Ripple CRM and Spark Marketing', 'backend'), 'cmd': 'python -m uvicorn app.main:app --host 0.0.0.0 --port 8100', 'health': '/api/health'},
     'touchstone':         {'name': 'Touchstone',          'port': 8200,  'url': 'http://localhost:8200',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Touchstone', 'backend'), 'cmd': 'python -m uvicorn app.main:app --host 0.0.0.0 --port 8200', 'health': '/api/v1/health'},
     'touchstone-dash':    {'name': 'Touchstone Dashboard', 'port': 3200,  'url': 'http://localhost:3200',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Touchstone', 'dashboard'), 'cmd': 'npx vite --host 0.0.0.0 --port 3200', 'health': '/'},
+    'knowyourself':       {'name': 'KnowYourself',        'port': 8300,  'url': 'http://localhost:8300',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'KnowYourself', 'backend'), 'cmd': 'python -m uvicorn app.main:app --host 0.0.0.0 --port 8300', 'health': '/api/health'},
+    'knowyourself-dash':  {'name': 'KnowYourself UI',     'port': 3300,  'url': 'http://localhost:3300',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'KnowYourself', 'frontend'), 'cmd': 'npx vite --host 0.0.0.0 --port 3300', 'health': '/'},
 
     # Infrastructure â€” Docker services (start via docker start)
     'ollama':             {'name': 'Ollama',              'port': 11434, 'url': 'http://localhost:11434', 'type': 'infra', 'health': '/api/tags', 'docker': None, 'cmd': 'ollama serve'},
@@ -356,6 +391,208 @@ def launch_service_internal(service_id):
         return {'status': 'launched', 'pid': process.pid}
 
     return {'status': 'no_launcher'}
+
+
+# ============================================================
+# Desktop App Launch — One-Click Launch
+# ============================================================
+
+def find_desktop_exe(electron_id):
+    """Find the .exe file for a desktop app in dist/."""
+    dist_dir = os.path.join(DESKTOP_DIST_DIR, electron_id)
+    if not os.path.isdir(dist_dir):
+        return None
+    # Check win-unpacked/ first (dir target output)
+    unpacked_dir = os.path.join(dist_dir, 'win-unpacked')
+    if os.path.isdir(unpacked_dir):
+        for f in os.listdir(unpacked_dir):
+            if f.endswith('.exe') and not f.startswith('Uninstall'):
+                return os.path.join(unpacked_dir, f)
+    # Fall back to root dist dir (portable target output)
+    for f in os.listdir(dist_dir):
+        if f.endswith('.exe') and not f.startswith('Uninstall'):
+            return os.path.join(dist_dir, f)
+    return None
+
+
+def start_backend_via_services(service_key):
+    """Start a backend service using services.ps1."""
+    if not os.path.isfile(SERVICES_PS1):
+        logger.warning(f"services.ps1 not found at {SERVICES_PS1}")
+        return False
+    try:
+        result = subprocess.run(
+            ['powershell', '-ExecutionPolicy', 'Bypass', '-File',
+             SERVICES_PS1, 'start', service_key],
+            capture_output=True, text=True, timeout=30,
+            cwd=SOURCE_BASE
+        )
+        logger.info(f"services.ps1 start {service_key}: {result.stdout.strip()[:200]}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to start {service_key} via services.ps1: {e}")
+        return False
+
+
+def launch_electron_app(electron_id):
+    """Launch an Electron desktop app (.exe or dev mode)."""
+    # Try built .exe first
+    exe_path = find_desktop_exe(electron_id)
+    if exe_path:
+        logger.info(f"Launching desktop .exe: {exe_path}")
+        subprocess.Popen(
+            [exe_path],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        )
+        return {'method': 'exe', 'path': exe_path}
+
+    # Fallback: launch via Electron dev mode
+    config_path = os.path.join(DESKTOP_APPS_DIR, 'apps', electron_id, 'config.json')
+    if os.path.isfile(ELECTRON_CMD) and os.path.isfile(config_path):
+        logger.info(f"Launching via electron dev: {electron_id}")
+        subprocess.Popen(
+            [ELECTRON_CMD, ELECTRON_MAIN, f'--config={config_path}'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            cwd=DESKTOP_APPS_DIR,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        )
+        return {'method': 'electron-dev', 'config': config_path}
+
+    return None
+
+
+@app.route('/api/desktop/launch/<app_id>', methods=['POST'])
+def launch_desktop(app_id):
+    """Launch a desktop app: start backend if needed, then open Electron .exe."""
+    if app_id not in DESKTOP_APPS:
+        return jsonify({'error': f'Unknown desktop app: {app_id}'}), 404
+
+    desktop = DESKTOP_APPS[app_id]
+    backend_key = desktop['backend_service']
+    electron_id = desktop['electron_id']
+    app_name = desktop['name']
+
+    # Step 1: Check if backend is running, start if not
+    backend_svc = None
+    for sid, svc in SERVICES.items():
+        if sid.lower().replace('-', '') == backend_key.lower().replace('-', ''):
+            backend_svc = (sid, svc)
+            break
+    # Also try matching by name
+    if not backend_svc:
+        for sid, svc in SERVICES.items():
+            if backend_key.lower() in sid.lower():
+                backend_svc = (sid, svc)
+                break
+
+    backend_status = 'unknown'
+    if backend_svc:
+        sid, svc = backend_svc
+        if check_service(sid, svc):
+            backend_status = 'already_running'
+        else:
+            start_backend_via_services(backend_key)
+            # Wait for backend to come up
+            for _ in range(10):
+                time.sleep(1.5)
+                if check_service(sid, svc):
+                    break
+            backend_status = 'launched' if check_service(sid, svc) else 'starting'
+    else:
+        # No matching backend in registry — try services.ps1 anyway
+        start_backend_via_services(backend_key)
+        backend_status = 'started_via_script'
+
+    # Step 2: Launch the Electron desktop app
+    launch_result = launch_electron_app(electron_id)
+
+    if launch_result:
+        return jsonify({
+            'id': app_id,
+            'name': app_name,
+            'status': 'launched',
+            'backend': backend_status,
+            'desktop': launch_result,
+            'message': f"{app_name} desktop launched (backend: {backend_status})"
+        })
+    else:
+        return jsonify({
+            'id': app_id,
+            'name': app_name,
+            'status': 'no_desktop',
+            'backend': backend_status,
+            'message': f"Backend {backend_status} but no desktop .exe found for {app_name}. "
+                       f"Run build-all.bat in CK/desktop-apps/ to create .exe files."
+        }), 404
+
+
+@app.route('/api/desktop/launch-all', methods=['POST'])
+def launch_all_desktop():
+    """Launch ALL desktop apps: start all backends, then open all Electron .exes."""
+    results = {}
+
+    # Step 1: Start all backends via services.ps1
+    logger.info("Launch All: starting all backends via services.ps1...")
+    start_backend_via_services('all')
+    time.sleep(5)  # Give backends a head start
+
+    # Step 2: Launch each desktop app
+    for app_id, desktop in DESKTOP_APPS.items():
+        electron_id = desktop['electron_id']
+        launch_result = launch_electron_app(electron_id)
+        if launch_result:
+            results[app_id] = {'status': 'launched', 'method': launch_result.get('method')}
+        else:
+            results[app_id] = {'status': 'no_exe'}
+
+    launched = sum(1 for r in results.values() if r['status'] == 'launched')
+    return jsonify({
+        'message': f'Launch All complete: {launched}/{len(DESKTOP_APPS)} desktop apps launched',
+        'results': results
+    })
+
+
+@app.route('/api/services/start-backends', methods=['POST'])
+def start_backends_only():
+    """Start all backend services without opening any desktop windows."""
+    logger.info("Starting all backends only (no desktop windows)...")
+    success = start_backend_via_services('all')
+
+    # Wait and check health
+    time.sleep(5)
+    running = 0
+    total = len(BACKEND_SERVICES)
+    statuses = {}
+
+    for key in BACKEND_SERVICES:
+        for sid, svc in SERVICES.items():
+            if sid.lower().replace('-', '') == key.lower().replace('-', ''):
+                is_up = check_service(sid, svc)
+                statuses[key] = 'running' if is_up else 'starting'
+                if is_up:
+                    running += 1
+                break
+
+    return jsonify({
+        'message': f'Backends started: {running}/{total} responding',
+        'services': statuses
+    })
+
+
+@app.route('/api/desktop/apps')
+def list_desktop_apps():
+    """List available desktop apps and their .exe status."""
+    result = {}
+    for app_id, desktop in DESKTOP_APPS.items():
+        exe_path = find_desktop_exe(desktop['electron_id'])
+        result[app_id] = {
+            'name': desktop['name'],
+            'electron_id': desktop['electron_id'],
+            'has_exe': exe_path is not None,
+            'exe_path': exe_path,
+        }
+    return jsonify(result)
 
 
 @app.route('/favicon.ico')

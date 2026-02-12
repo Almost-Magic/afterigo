@@ -464,6 +464,8 @@ deactivate
 | 8118 | Privoxy HTTP Proxy | OSINT Layer |
 | 8282 | IVRE Network Recon | OSINT Layer |
 | 8284 | HIBP Offline Checker | OSINT Layer |
+| 8300 | KnowYourself API | Ground Series |
+| 3300 | KnowYourself UI | Ground Series |
 
 ---
 

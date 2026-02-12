@@ -32,7 +32,7 @@ logger = logging.getLogger("elaine.app")
 
 
 OLLAMA_URL = "http://localhost:9000/api/generate"
-OLLAMA_MODEL = "gemma2:27b"
+OLLAMA_MODEL = "llama3.1:8b"
 ELAINE_DIR = Path(__file__).parent.resolve()
 BRIEFING_TEMPLATE_DIR = ELAINE_DIR / "templates" / "briefing"
 LLM_DB_PATH = Path.home() / ".elaine" / "briefing.db"
@@ -279,8 +279,9 @@ def create_app():
     app.register_blueprint(create_gatekeeper_routes(gatekeeper))
 
     # Chat + Tool Registry + Service Health
-    from api_routes_chat import create_chat_routes
+    from api_routes_chat import create_chat_routes, prewarm_chat_model
     app.register_blueprint(create_chat_routes())
+    prewarm_chat_model()  # background thread — loads qwen3:4b into VRAM
 
     # Phase 5: Briefing, POI, Resilience, Memory routes
     import modules.phase5_routes as _p5
@@ -350,6 +351,10 @@ def create_app():
     app.register_blueprint(
         create_stabilisation_routes(_get_modules_status, _morning_briefing_data)
     )
+
+    # Wisdom & Philosophy routes (proxies to Wisdom Quotes API :3350)
+    from api_routes_wisdom import bp as wisdom_bp
+    app.register_blueprint(wisdom_bp)
 
     # ── Combined Briefing Helper (modules + Phase 5) ─────────────
 

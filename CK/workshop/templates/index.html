@@ -334,6 +334,105 @@
             font-size: 0.7rem;
         }
 
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--navy-light);
+            color: var(--text-primary);
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: var(--navy-surface);
+            border-color: rgba(201, 168, 76, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:active { transform: translateY(0); }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            color: var(--navy);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+        }
+
+        .action-btn.success {
+            border-color: rgba(52, 211, 153, 0.3);
+            color: var(--green);
+        }
+
+        .action-btn.success:hover {
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .action-btn .btn-icon { font-size: 1rem; }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+            transform: none !important;
+        }
+
+        /* Launch button on cards */
+        .card-launch-btn {
+            display: none;
+            position: absolute;
+            bottom: 0.6rem;
+            left: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: rgba(201, 168, 76, 0.12);
+            color: var(--gold);
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .card-launch-btn:hover {
+            background: rgba(201, 168, 76, 0.25);
+            border-color: var(--gold);
+        }
+
+        .app-card:hover .card-launch-btn {
+            display: block;
+        }
+
+        .card-launch-btn.launching {
+            color: var(--amber);
+            border-color: rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
+            cursor: wait;
+        }
+
         /* Search */
         .search-bar {
             background: var(--navy-light);
@@ -374,6 +473,19 @@
                 </div>
             </div>
         </header>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="action-btn primary" onclick="launchAllDesktop()" id="btnLaunchAll">
+                <span class="btn-icon">&#9654;</span> Launch All Desktop Apps
+            </button>
+            <button class="action-btn success" onclick="startBackendsOnly()" id="btnBackends">
+                <span class="btn-icon">&#9881;</span> Start Backends Only
+            </button>
+            <button class="action-btn" onclick="checkAllHealth()" id="btnHealth">
+                <span class="btn-icon">&#9829;</span> Health Check
+            </button>
+        </div>
 
         <!-- CK Apps — Internal -->
         <div class="section" id="section-ck">
@@ -418,11 +530,12 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-left">
-                The Workshop v1.0 · © 2026 Almost Magic Tech Lab · Where Almost Magic Meets Real Results
+                The Workshop v2.0 · © 2026 Almost Magic Tech Lab · Where Almost Magic Meets Real Results
             </div>
             <div class="footer-right">
                 <a href="#" class="footer-link" onclick="checkAllHealth()">Health Check</a>
-                <a href="#" class="footer-link" onclick="launchAll()">🚀 Launch All</a>
+                <a href="#" class="footer-link" onclick="launchAll()">Launch Services</a>
+                <a href="#" class="footer-link" onclick="launchAllDesktop()">Launch All Desktop</a>
                 <a href="#" class="footer-link" onclick="document.getElementById('searchBar').focus()">Search (Ctrl+K)</a>
             </div>
         </footer>
@@ -1072,6 +1185,31 @@
         }
 
         // ================================================================
+        // Desktop app IDs that have Electron wrappers
+        // ================================================================
+        const DESKTOP_APP_IDS = [
+            'elaine', 'workshop', 'ripple', 'touchstone', 'writer',
+            'learning', 'peterman', 'genie', 'costanza', 'author-studio',
+            'junk-drawer', 'supervisor'
+        ];
+
+        // Map frontend app IDs to desktop API IDs
+        const DESKTOP_ID_MAP = {
+            'elaine': 'elaine',
+            'writer': 'writer',
+            'learning-assistant': 'learning',
+            'costanza': 'costanza',
+            'peterman': 'peterman',
+            'author-studio': 'author-studio',
+            'junk-drawer': 'junk-drawer',
+            'genie': 'genie',
+            'ripple': 'ripple',
+            'touchstone': 'touchstone',
+            'touchstone-dash': 'touchstone',
+            'supervisor': 'supervisor',
+        };
+
+        // ================================================================
         // CARD RENDERER
         // ================================================================
         function renderCard(app) {
@@ -1085,6 +1223,8 @@
             if (app.url) {
                 card.href = '#';
                 card.onclick = async (e) => {
+                    // Don't trigger if clicking the launch button
+                    if (e.target.classList.contains('card-launch-btn')) return;
                     e.preventDefault();
                     // Check if service is running first
                     try {
@@ -1128,13 +1268,21 @@
             } else {
                 card.href = '#';
                 card.onclick = (e) => {
+                    if (e.target.classList.contains('card-launch-btn')) return;
                     e.preventDefault();
                     showToast(`${app.name} — not yet built. Port ${app.port} reserved.`);
                 };
             }
 
-            const statusClass = app.status === 'live' ? 'status-live' : 
+            const statusClass = app.status === 'live' ? 'status-live' :
                                app.status === 'building' ? 'status-building' : 'status-stopped';
+
+            // Check if this app has a desktop wrapper
+            const desktopId = DESKTOP_ID_MAP[app.id];
+            const hasDesktop = !!desktopId;
+            const launchBtnHtml = hasDesktop
+                ? `<button class="card-launch-btn" data-desktop-id="${desktopId}" onclick="event.preventDefault(); event.stopPropagation(); launchDesktopApp('${desktopId}', '${app.name}', this)">Launch</button>`
+                : '';
 
             card.innerHTML = `
                 <span class="app-port">:${app.port}</span>
@@ -1142,6 +1290,7 @@
                 <div class="app-name">${app.name}</div>
                 <div class="app-desc">${app.desc}</div>
                 <div class="app-status-indicator ${statusClass}"></div>
+                ${launchBtnHtml}
             `;
 
             return card;
@@ -1272,6 +1421,100 @@
                 setTimeout(checkAllHealth, 3000);
             } catch {
                 showToast('Launch all failed — check Workshop terminal');
+            }
+        }
+
+        // ================================================================
+        // DESKTOP APP LAUNCH — One-click launch with auto backend start
+        // ================================================================
+        async function launchDesktopApp(desktopId, appName, btnElement) {
+            if (btnElement) {
+                btnElement.classList.add('launching');
+                btnElement.textContent = 'Starting...';
+            }
+            showToast(`Launching ${appName} desktop...`);
+
+            try {
+                const resp = await fetch(`/api/desktop/launch/${desktopId}`, { method: 'POST' });
+                const data = await resp.json();
+
+                if (data.status === 'launched') {
+                    showToast(`${appName} launched (backend: ${data.backend})`);
+                    if (btnElement) {
+                        btnElement.textContent = 'Running';
+                        btnElement.style.color = 'var(--green)';
+                        btnElement.style.borderColor = 'rgba(52, 211, 153, 0.3)';
+                    }
+                    // Update status indicator
+                    const card = document.querySelector(`[data-id="${desktopId}"], [data-id="${appName.toLowerCase()}"]`);
+                    if (card) {
+                        const indicator = card.querySelector('.app-status-indicator');
+                        if (indicator) {
+                            indicator.classList.remove('status-stopped', 'status-building');
+                            indicator.classList.add('status-live');
+                        }
+                    }
+                } else {
+                    showToast(data.message || `Could not launch ${appName}`);
+                    if (btnElement) {
+                        btnElement.classList.remove('launching');
+                        btnElement.textContent = 'Launch';
+                    }
+                }
+            } catch (e) {
+                showToast(`Failed to launch ${appName} — check Workshop`);
+                if (btnElement) {
+                    btnElement.classList.remove('launching');
+                    btnElement.textContent = 'Launch';
+                }
+            }
+        }
+
+        async function launchAllDesktop() {
+            const btn = document.getElementById('btnLaunchAll');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">&#9203;</span> Launching all...';
+            showToast('Launching all desktop apps + backends...');
+
+            try {
+                const resp = await fetch('/api/desktop/launch-all', { method: 'POST' });
+                const data = await resp.json();
+                showToast(data.message);
+                btn.innerHTML = '<span class="btn-icon">&#9989;</span> All launched';
+                setTimeout(() => {
+                    btn.innerHTML = '<span class="btn-icon">&#9654;</span> Launch All Desktop Apps';
+                    btn.disabled = false;
+                }, 3000);
+                // Refresh health
+                setTimeout(checkAllHealth, 2000);
+            } catch {
+                showToast('Launch all failed — check Workshop terminal');
+                btn.innerHTML = '<span class="btn-icon">&#9654;</span> Launch All Desktop Apps';
+                btn.disabled = false;
+            }
+        }
+
+        async function startBackendsOnly() {
+            const btn = document.getElementById('btnBackends');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-icon">&#9203;</span> Starting backends...';
+            showToast('Starting all backend services (no desktop windows)...');
+
+            try {
+                const resp = await fetch('/api/services/start-backends', { method: 'POST' });
+                const data = await resp.json();
+                showToast(data.message);
+                btn.innerHTML = '<span class="btn-icon">&#9989;</span> Backends started';
+                setTimeout(() => {
+                    btn.innerHTML = '<span class="btn-icon">&#9881;</span> Start Backends Only';
+                    btn.disabled = false;
+                }, 3000);
+                // Refresh health
+                setTimeout(checkAllHealth, 2000);
+            } catch {
+                showToast('Start backends failed — check Workshop terminal');
+                btn.innerHTML = '<span class="btn-icon">&#9881;</span> Start Backends Only';
+                btn.disabled = false;
             }
         }
 

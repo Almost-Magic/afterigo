@@ -1,0 +1,120 @@
+app: KnowYourself
+description: Personality assessment and self-discovery tool
+port: 8300
+url: http://localhost:8300
+category: ground-series
+priority: medium
+license: proprietary
+
+features:
+  - id: health_endpoint
+    name: Health endpoint responds
+    check: http_get
+    path: /api/health
+    expected_status: 200
+    expected_contains: ok
+
+  - id: questions_big_five
+    name: Big Five questions endpoint returns 50 items
+    check: http_get
+    path: /api/questions/big-five
+    expected_status: 200
+    expected_contains: questions
+
+  - id: questions_archetype
+    name: Archetype questions endpoint returns 24 items
+    check: http_get
+    path: /api/questions/archetype
+    expected_status: 200
+    expected_contains: questions
+
+  - id: questions_consciousness
+    name: Consciousness questions endpoint returns 10 items
+    check: http_get
+    path: /api/questions/consciousness
+    expected_status: 200
+    expected_contains: questions
+
+  - id: questions_daily_prompt
+    name: Daily prompt endpoint
+    check: http_get
+    path: /api/questions/daily-prompt
+    expected_status: 200
+    expected_contains: prompt
+
+  - id: assess_big_five
+    name: Big Five assessment submission
+    check: http_post
+    path: /api/assessments/big-five
+    body: '{"answers": [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}'
+    expected_status: 200
+    expected_contains: scores
+    timeout: 300
+
+  - id: assess_archetype
+    name: Archetype assessment submission
+    check: http_post
+    path: /api/assessments/archetype
+    body: '{"answers": ["a","b","a","a","b","a","b","b","a","a","b","a","b","a","a","b","b","a","a","b","a","b","a","a"]}'
+    expected_status: 200
+    expected_contains: primary_archetype
+    timeout: 300
+
+  - id: assess_consciousness
+    name: Consciousness assessment submission
+    check: http_post
+    path: /api/assessments/consciousness
+    body: '{"answers": [4,3,5,4,3,4,5,3,4,5]}'
+    expected_status: 200
+    expected_contains: level
+    timeout: 300
+
+  - id: journal_submission
+    name: Journal entry submission
+    check: http_post
+    path: /api/journal
+    body: '{"prompt": "Who am I today?", "entry_text": "I am someone who is still learning to be present."}'
+    expected_status: 200
+    expected_contains: ai_reflection
+    timeout: 300
+
+  - id: history_endpoint
+    name: Assessment history endpoint
+    check: http_get
+    path: /api/history
+    expected_status: 200
+
+  - id: profile_endpoint
+    name: Profile aggregation endpoint
+    check: http_get
+    path: /api/profile
+    expected_status: 200
+    expected_contains: total_assessments
+
+  - id: bf_validation_count
+    name: Big Five rejects wrong answer count
+    check: http_post
+    path: /api/assessments/big-five
+    body: '{"answers": [3,3,3]}'
+    expected_status: 400
+
+  - id: arch_validation_count
+    name: Archetype rejects wrong answer count
+    check: http_post
+    path: /api/assessments/archetype
+    body: '{"answers": ["a","b"]}'
+    expected_status: 400
+
+  - id: journal_validation_empty
+    name: Journal rejects empty entry
+    check: http_post
+    path: /api/journal
+    body: '{"prompt": "test", "entry_text": "  "}'
+    expected_status: 400
+
+  - id: frontend_serves
+    name: Frontend serves on port 3300
+    check: http_get
+    url: http://localhost:3300
+    expected_status: 200
+    expected_contains: KnowYourself
