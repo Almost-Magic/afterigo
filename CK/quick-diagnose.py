@@ -27,6 +27,7 @@ if sys.platform == "win32":
         pass
 
 TIMEOUT = 15  # seconds — hard limit per test
+OLLAMA_GEN_TIMEOUT = 30  # longer timeout for Ollama generation (cold model load)
 OLLAMA_PORT = 11434
 SUPERVISOR_PORT = 9000
 
@@ -127,7 +128,7 @@ def test_ollama_can_generate():
                 f"http://localhost:{OLLAMA_PORT}/api/generate",
                 {"model": model, "prompt": "Say hello in 5 words.", "stream": False,
                  "options": {"num_predict": 30}},
-                timeout=TIMEOUT,
+                timeout=OLLAMA_GEN_TIMEOUT,
             )
             data = json.loads(body)
             response_text = data.get("response", "").strip()
