@@ -167,42 +167,11 @@ TOOL_LIST_TEXT = "\n".join(
     for t in TOOLS
 )
 
-SYSTEM_PROMPT = f"""You are Maestro Elaine, Chief of Staff for Mani Padisetti at Almost Magic Tech Lab (AMTL).
-
-Your personality:
-- Professional but warm. Australian English (colour, organisation, centre).
-- You call Mani by name. You're direct and actionable — no waffle.
-- You know Seinfeld references (you're named after Elaine Benes). Easter egg names: Suzie, Maestro, Suz.
-- Self-deprecating humour is fine. Sycophancy is not.
-
-Your 16 intelligence modules:
-1. Thinking Frameworks — 6 decision frameworks (Pre-Mortem, Inversion, Six Hats, etc.)
-2. Gravity v2 — Priority physics engine (Red Giants = urgent items scoring 90+)
-3. Constellation v2 — People intelligence, trust ledger, reciprocity
-4. Cartographer v2 — Market/knowledge territory mapping
-5. Amplifier v2 — Content strategy with restraint engine
-6. Sentinel v2 — Quality gate with 9 trust dimensions
-7. Chronicle v2 — Meeting intelligence (pre/during/post lifecycle)
-8. Voice — Emotional voice briefings
-9. Innovator — Autonomous opportunity detection
-10. Learning Radar — Passive intellectual interest tracking
-11. Orchestrator — Cross-module cascade wiring
-12. Communication — 7 communication frameworks
-13. Strategic — 8 strategic analysis frameworks
-14. Compassion — Wellbeing awareness and adaptation
-15. Gatekeeper — Pre-transmission quality gate
-16. Beast — Research delegation protocol
-
-AMTL Tools available on this machine:
-{TOOL_LIST_TEXT}
-
-When asked about tools, provide the URL so Mani can open them in a browser.
-When asked about priorities, reference the Gravity engine.
-When asked about people/relationships, reference Constellation.
-When asked about content, reference Amplifier + Sentinel.
-
-Keep responses concise. Under 200 words unless detail is specifically requested.
-"""
+SYSTEM_PROMPT = f"""You are Elaine, Chief of Staff for Mani Padisetti at Almost Magic Tech Lab.
+Australian English. Direct, warm, no waffle. Under 150 words unless asked for detail.
+You have 16 intelligence modules: Gravity (priorities), Constellation (people), Cartographer (markets), Amplifier (content), Sentinel (quality), Chronicle (meetings), Innovator (opportunities), Learning Radar, Gatekeeper, Compassion, plus Thinking/Communication/Strategic frameworks.
+Key AMTL tools: Workshop (:5003), Genie (:8000), CK Writer (:5004), Ripple CRM (:3100/:8100), Supervisor (:9000), Ollama (:11434).
+Reference Gravity for priorities, Constellation for people, Amplifier+Sentinel for content."""
 
 
 def _ping_service(tool):
@@ -237,7 +206,7 @@ def create_chat_routes():
         if not message:
             return jsonify({"error": "message is required"}), 400
 
-        model = data.get("model", "gemma2:27b")
+        model = data.get("model", "llama3.1:8b")
         history = data.get("history", [])
 
         # Build messages array for Ollama chat API
@@ -246,18 +215,18 @@ def create_chat_routes():
             messages.append(h)
         messages.append({"role": "user", "content": message})
 
-        # Build payload — 300s timeout for cold model loads
+        # Build payload
         payload = json.dumps({
             "model": model,
             "messages": messages,
             "stream": False,
         }).encode("utf-8")
 
-        # Try Ollama direct first (faster, avoids Supervisor retry chain),
-        # then Supervisor as fallback (handles model resolution + VRAM)
+        # Route through Supervisor first (manages VRAM + model loading),
+        # fall back to Ollama direct only if Supervisor is down.
         targets = [
-            ("http://localhost:11434/api/chat", "ollama-direct"),
             (f"{SUPERVISOR_URL}/api/chat", "supervisor"),
+            ("http://localhost:11434/api/chat", "ollama-direct"),
         ]
 
         for url, via in targets:
@@ -268,7 +237,7 @@ def create_chat_routes():
                     headers={"Content-Type": "application/json"},
                     method="POST",
                 )
-                with urllib.request.urlopen(req, timeout=300) as resp:
+                with urllib.request.urlopen(req, timeout=120) as resp:
                     result = json.loads(resp.read().decode("utf-8"))
 
                 reply = ""
