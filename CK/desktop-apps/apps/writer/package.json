@@ -14,7 +14,7 @@
     "productName": "CK Writer",
     "extends": null,
     "files": [
-      "../../shared/**/*",
+      "shared/**/*",
       "config.json"
     ],
     "extraMetadata": {
@@ -25,14 +25,10 @@
       "buildResources": "../../shared"
     },
     "win": {
-      "target": "nsis",
-      "icon": "../../icons/writer.ico"
+      "target": "portable"
     },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "createDesktopShortcut": true,
-      "shortcutName": "CK Writer"
+    "portable": {
+      "artifactName": "${productName}.exe"
     }
   }
 }

@@ -14,7 +14,7 @@
     "productName": "Supervisor",
     "extends": null,
     "files": [
-      "../../shared/**/*",
+      "shared/**/*",
       "config.json"
     ],
     "extraMetadata": {
@@ -25,14 +25,10 @@
       "buildResources": "../../shared"
     },
     "win": {
-      "target": "nsis",
-      "icon": "../../icons/supervisor.ico"
+      "target": "portable"
     },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "createDesktopShortcut": true,
-      "shortcutName": "Supervisor"
+    "portable": {
+      "artifactName": "${productName}.exe"
     }
   }
 }

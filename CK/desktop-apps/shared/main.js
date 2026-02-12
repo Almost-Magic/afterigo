@@ -21,9 +21,19 @@ const http = require('http');
 // Load app config
 // ---------------------------------------------------------------------------
 const configArg = process.argv.find(a => a.startsWith('--config='));
-const configPath = configArg
-    ? path.resolve(configArg.replace('--config=', ''))
-    : path.join(__dirname, '..', 'apps', 'elaine', 'config.json');
+let configPath;
+if (configArg) {
+    configPath = path.resolve(configArg.replace('--config=', ''));
+} else if (fs.existsSync(path.join(__dirname, '..', 'config.json'))) {
+    // Packaged app (asar): config.json sits one level above shared/
+    configPath = path.join(__dirname, '..', 'config.json');
+} else if (fs.existsSync(path.join(path.dirname(process.execPath), 'config.json'))) {
+    // Cloned app: config.json sits next to the .exe
+    configPath = path.join(path.dirname(process.execPath), 'config.json');
+} else {
+    // Dev fallback
+    configPath = path.join(__dirname, '..', 'apps', 'elaine', 'config.json');
+}
 
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 

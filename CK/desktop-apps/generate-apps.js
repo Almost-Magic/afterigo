@@ -155,7 +155,7 @@ for (const cfg of apps) {
             productName: cfg.name,
             extends: null,
             files: [
-                '../../shared/**/*',
+                'shared/**/*',
                 'config.json',
             ],
             extraMetadata: {
@@ -166,14 +166,10 @@ for (const cfg of apps) {
                 buildResources: '../../shared',
             },
             win: {
-                target: 'nsis',
-                icon: `../../icons/${cfg.id}.ico`,
+                target: 'portable',
             },
-            nsis: {
-                oneClick: true,
-                perMachine: false,
-                createDesktopShortcut: true,
-                shortcutName: cfg.name,
+            portable: {
+                artifactName: '${productName}.exe',
             },
         },
     };
