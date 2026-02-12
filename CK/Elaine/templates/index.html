@@ -404,8 +404,9 @@ body{font-family:'Sora',system-ui,sans-serif;background:var(--bg);color:var(--te
           <div class="msg elaine"><div class="msg-who">Elaine</div><div class="msg-bubble" id="chatHello">Connecting...</div></div>
         </div>
         <div class="chat-bar">
-          <button class="chat-btn mic" id="micBtn" onclick="toggleMic()" title="Click to speak">&#127908;</button>
+          <button class="chat-btn mic" id="micBtn" onclick="toggleMic()" title="Click to speak (Chrome/Edge)">&#127908;</button>
           <input class="chat-input" id="chatIn" placeholder="Talk to Elaine..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendChat()}">
+          <button class="chat-btn" id="speakBtn" onclick="toggleSpeak()" title="Toggle voice replies" style="font-size:14px">&#128264;</button>
           <button class="chat-btn" id="sendBtn" onclick="sendChat()" title="Send">&rarr;</button>
         </div>
       </div>
@@ -724,6 +725,7 @@ async function sendChat(){
       /* Basic markdown: **bold**, \n to <br> */
       var formatted=escHtml(reply).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
       addMsg(formatted,'elaine',r.via||'ollama');
+      speakText(reply);
     }
   }catch(e){
     removeTyping();
@@ -734,18 +736,75 @@ async function sendChat(){
   document.getElementById('sendBtn').disabled=false;
 }
 
-/* === Microphone === */
+/* === Microphone (Speech-to-Text) === */
 var recognition=null,isRec=false;
 if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   recognition=new SR();recognition.continuous=false;recognition.interimResults=false;recognition.lang='en-AU';
-  recognition.onresult=function(e){chatIn.value=e.results[0][0].transcript;sendChat()};
+  recognition.onresult=function(e){
+    var transcript=e.results[0][0].transcript;
+    chatIn.value=transcript;
+    sendChat();
+  };
   recognition.onend=function(){isRec=false;document.getElementById('micBtn').classList.remove('recording')};
-  recognition.onerror=recognition.onend;
+  recognition.onerror=function(e){
+    isRec=false;document.getElementById('micBtn').classList.remove('recording');
+    var msg='Microphone error';
+    if(e.error==='not-allowed')msg='Microphone permission denied. Click the lock icon in the address bar to allow.';
+    else if(e.error==='no-speech')msg='No speech detected. Try again.';
+    else if(e.error==='network')msg='Speech recognition needs an internet connection (Chrome sends audio to Google).';
+    else if(e.error==='aborted')return;
+    else msg='Microphone error: '+e.error;
+    addMsg(msg,'elaine','local');
+  };
 }
 function toggleMic(){
-  if(!recognition){addMsg("Speech not available in this browser. Type instead.",'elaine');return}
-  if(isRec){recognition.stop()}else{recognition.start();isRec=true;document.getElementById('micBtn').classList.add('recording')}
+  if(!recognition){addMsg("Speech recognition not available. Use Chrome or Edge for voice input.",'elaine','local');return}
+  if(isRec){recognition.stop()}else{
+    try{recognition.start();isRec=true;document.getElementById('micBtn').classList.add('recording')}
+    catch(e){addMsg('Could not start microphone: '+e.message,'elaine','local')}
+  }
+}
+
+/* === Voice Output (Text-to-Speech via browser) === */
+var voiceEnabled=false;
+var speechSynth=window.speechSynthesis||null;
+var elaineVoice=null;
+
+function findAusVoice(){
+  if(!speechSynth)return;
+  var voices=speechSynth.getVoices();
+  /* Prefer Australian English female voice */
+  elaineVoice=voices.find(function(v){return v.lang==='en-AU'&&/female/i.test(v.name)})
+    ||voices.find(function(v){return v.lang==='en-AU'})
+    ||voices.find(function(v){return v.lang.startsWith('en')&&/female/i.test(v.name)})
+    ||voices.find(function(v){return v.lang.startsWith('en')})
+    ||null;
+}
+if(speechSynth){
+  findAusVoice();
+  if(speechSynth.onvoiceschanged!==undefined)speechSynth.onvoiceschanged=findAusVoice;
+}
+
+function speakText(text){
+  if(!speechSynth||!voiceEnabled)return;
+  speechSynth.cancel();
+  var clean=text.replace(/<[^>]+>/g,'').replace(/\*\*/g,'');
+  if(clean.length>500)clean=clean.substring(0,500)+'... that is the summary.';
+  var utt=new SpeechSynthesisUtterance(clean);
+  utt.lang='en-AU';utt.rate=1.0;utt.pitch=1.0;
+  if(elaineVoice)utt.voice=elaineVoice;
+  speechSynth.speak(utt);
+}
+
+function toggleSpeak(){
+  voiceEnabled=!voiceEnabled;
+  var btn=document.getElementById('speakBtn');
+  btn.innerHTML=voiceEnabled?'&#128266;':'&#128264;';
+  btn.title=voiceEnabled?'Voice replies ON':'Voice replies OFF';
+  btn.style.color=voiceEnabled?'var(--accent)':'';
+  if(!voiceEnabled&&speechSynth)speechSynth.cancel();
+  addMsg(voiceEnabled?'Voice replies enabled. I will speak my responses.':'Voice replies disabled.','elaine','local');
 }
 
 /* === Morning Brief === */

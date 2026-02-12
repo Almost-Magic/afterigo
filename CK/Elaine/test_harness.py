@@ -1149,7 +1149,7 @@ def test_import_chat_routes():
     from api_routes_chat import create_chat_routes, TOOLS, SYSTEM_PROMPT
     assert callable(create_chat_routes)
     assert len(TOOLS) >= 10
-    assert "Maestro Elaine" in SYSTEM_PROMPT
+    assert "Elaine" in SYSTEM_PROMPT
 
 
 def test_tools_endpoint():

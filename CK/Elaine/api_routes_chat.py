@@ -19,8 +19,9 @@ logger = logging.getLogger("elaine.chat")
 
 SUPERVISOR_URL = os.environ.get("SUPERVISOR_URL", "http://localhost:9000")
 LAN_IP = os.environ.get("ELAINE_LAN_IP", "192.168.4.55")
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 CHAT_MODEL = os.environ.get("ELAINE_CHAT_MODEL", "llama3.2:3b")
-CHAT_TIMEOUT = 8  # seconds — snappy chat, friendly fallback on timeout
+CHAT_TIMEOUT = 15  # seconds — fast model, should respond well within this
 CHAT_MAX_TOKENS = 150  # concise replies, not essays
 
 # ── AMTL Tool Registry ─────────────────────────────────────────
@@ -204,7 +205,7 @@ def create_chat_routes():
         if not message:
             return jsonify({"error": "message is required"}), 400
 
-        model = data.get("model", "") or CHAT_MODEL
+        model = data.get("model", CHAT_MODEL)
         history = data.get("history", [])
 
         # Build messages array for Ollama chat API
@@ -225,7 +226,7 @@ def create_chat_routes():
         # fall back to Ollama direct only if Supervisor is down.
         targets = [
             (f"{SUPERVISOR_URL}/api/chat", "supervisor"),
-            ("http://localhost:11434/api/chat", "ollama-direct"),
+            (f"{OLLAMA_URL}/api/chat", "ollama-direct"),
         ]
 
         import time as _time
@@ -333,7 +334,7 @@ def prewarm_chat_model():
         }).encode("utf-8")
         targets = [
             f"{SUPERVISOR_URL}/api/chat",
-            "http://localhost:11434/api/chat",
+            f"{OLLAMA_URL}/api/chat",
         ]
         for url in targets:
             try:
@@ -350,7 +351,7 @@ def prewarm_chat_model():
             except Exception as e:
                 logger.warning("Pre-warm via %s failed: %s", url, e)
                 continue
-        logger.warning("Could not pre-warm chat model %s — first message will be slow", CHAT_MODEL)
+        logger.warning("Could not pre-warm chat model %s -- first message will be slow", CHAT_MODEL)
 
     t = threading.Thread(target=_warm, daemon=True, name="chat-prewarm")
     t.start()
