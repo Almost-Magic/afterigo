@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-02-12T18:55:34.541623+00:00",
+  "timestamp": "2026-02-12T22:39:10.048795+00:00",
   "generated_by": "The Foreperson v2.0",
   "apps": [
     {
-      "app": "Ripple CRM",
-      "port": 8100,
+      "app": "ELAINE",
+      "port": 5000,
       "category": "ck",
-      "priority": "high",
-      "description": "Relationship Intelligence Engine",
-      "url": "http://localhost:8100",
+      "priority": "critical",
+      "description": "AI Chief of Staff — 16 modules",
+      "url": "http://localhost:5000",
       "port_alive": true,
       "features": [
         {
@@ -20,217 +20,193 @@
           "notes": ""
         },
         {
-          "id": "frontend_loads",
-          "name": "Frontend loads",
+          "id": "web_ui",
+          "name": "Web UI loads",
           "check_type": "http_get",
           "status": "working",
           "detail": "HTTP 200 OK",
           "notes": ""
         },
         {
-          "id": "contacts_crud",
-          "name": "Contact CRUD",
+          "id": "powershell_execution",
+          "name": "PowerShell execution module",
+          "check_type": "manual_ui_check",
+          "status": "not_tested",
+          "detail": "Requires manual verification",
+          "notes": "Electron desktop feature — not testable via HTTP API"
+        },
+        {
+          "id": "claude_interaction",
+          "name": "Claude/Guruve interaction (thinking frameworks)",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200 OK",
+          "notes": "Thinking frameworks engine is ELAINE's AI interaction mechanism"
+        },
+        {
+          "id": "claude_code_integration",
+          "name": "Claude Code integration",
+          "check_type": "manual_ui_check",
+          "status": "not_tested",
+          "detail": "Requires manual verification",
+          "notes": "Electron desktop feature — ELAINE calls Claude Code via shell"
+        },
+        {
+          "id": "app_orchestration",
+          "name": "App orchestration via Supervisor",
+          "check_type": "http_get",
+          "status": "working",
+          "detail": "HTTP 200, contains 'orchestrat'",
           "notes": ""
         },
         {
-          "id": "companies_crud",
-          "name": "Company CRUD",
+          "id": "copy_paste_automation",
+          "name": "Copy/paste automation",
+          "check_type": "manual_ui_check",
+          "status": "not_tested",
+          "detail": "Requires manual verification",
+          "notes": "Electron desktop feature — clipboard access via Node.js"
+        },
+        {
+          "id": "file_operations",
+          "name": "File operations module",
+          "check_type": "manual_ui_check",
+          "status": "not_tested",
+          "detail": "Requires manual verification",
+          "notes": "Electron desktop feature — file ops via Node.js fs module"
+        },
+        {
+          "id": "voice_interaction",
+          "name": "Voice interaction (ElevenLabs)",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200, contains 'voice'",
           "notes": ""
         },
         {
-          "id": "deals_crud",
-          "name": "Deal CRUD",
+          "id": "multi_step_chains",
+          "name": "Multi-step task chains (orchestrator cascades)",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
+          "detail": "HTTP 200, contains 'orchestrator'",
+          "notes": "Orchestrator module handles cascading multi-step task chains"
         },
         {
-          "id": "interactions_list",
-          "name": "Interactions list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "tasks_list",
-          "name": "Tasks list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "commitments_list",
-          "name": "Commitments list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "dashboard",
-          "name": "Daily Command Centre",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'metrics'",
-          "notes": ""
-        },
-        {
-          "id": "relationship_health",
-          "name": "Relationship health recalculate",
+          "id": "frustration_logging",
+          "name": "Frustration logging command",
           "check_type": "http_post",
           "status": "working",
-          "detail": "HTTP 200, contains 'count'",
+          "detail": "HTTP 200 OK",
           "notes": ""
         },
         {
-          "id": "privacy_consents",
-          "name": "Privacy consent list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "settings",
-          "name": "Settings endpoint",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'user_name'",
-          "notes": ""
-        },
-        {
-          "id": "export_contacts",
-          "name": "CSV export contacts",
+          "id": "morning_briefing",
+          "name": "Morning Briefing",
           "check_type": "http_get",
           "status": "working",
           "detail": "HTTP 200 OK",
           "notes": ""
         },
         {
-          "id": "validation",
-          "name": "Input validation endpoint",
+          "id": "mobile_access",
+          "name": "Mobile access from anywhere (Tailscale)",
+          "check_type": "manual_ui_check",
+          "status": "not_tested",
+          "detail": "Requires manual verification",
+          "notes": "Requires Tailscale setup — currently WiFi-only"
+        },
+        {
+          "id": "gatekeeper",
+          "name": "Gatekeeper module",
+          "check_type": "http_get",
+          "status": "working",
+          "detail": "HTTP 200, contains 'gatekeeper'",
+          "notes": ""
+        },
+        {
+          "id": "gravity_engine",
+          "name": "Gravity priority engine",
+          "check_type": "http_get",
+          "status": "working",
+          "detail": "HTTP 200, contains 'gravity'",
+          "notes": ""
+        },
+        {
+          "id": "constellation",
+          "name": "Constellation people intelligence",
+          "check_type": "http_get",
+          "status": "working",
+          "detail": "HTTP 200, contains 'constellation'",
+          "notes": ""
+        },
+        {
+          "id": "chat_ollama",
+          "name": "Chat via Ollama (Supervisor or direct)",
           "check_type": "http_post",
           "status": "working",
-          "detail": "HTTP 200, contains 'valid'",
-          "notes": ""
-        },
-        {
-          "id": "notes_list",
-          "name": "Notes list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "audit_log",
-          "name": "Audit log accessible",
-          "check_type": "http_get",
-          "status": "working",
           "detail": "HTTP 200 OK",
+          "notes": "Returns 200 when Ollama running, 503 when offline — both acceptable. Spec checks 200 (Foreperson lacks list support)."
+        },
+        {
+          "id": "tool_registry",
+          "name": "AMTL tool registry",
+          "check_type": "http_get",
+          "status": "working",
+          "detail": "HTTP 200, contains 'tools'",
           "notes": ""
         },
         {
-          "id": "tags_crud",
-          "name": "Tag CRUD",
+          "id": "service_health",
+          "name": "Service health check",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200, contains 'services'",
           "notes": ""
         },
         {
-          "id": "lead_scoring",
-          "name": "Three Brains lead score leaderboard",
+          "id": "web_ui_chat",
+          "name": "Web UI has Ollama chat interface",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200, contains 'chatHistory'",
           "notes": ""
         },
         {
-          "id": "channel_dna",
-          "name": "Channel DNA summary",
+          "id": "web_ui_tools",
+          "name": "Web UI has tools panel",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200, contains 'tools-grid'",
           "notes": ""
         },
         {
-          "id": "trust_decay",
-          "name": "Trust decay at-risk list",
+          "id": "web_ui_theme",
+          "name": "Web UI dark/light theme toggle",
           "check_type": "http_get",
           "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "deal_analytics_pipeline",
-          "name": "Deal analytics pipeline",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'stages'",
-          "notes": ""
-        },
-        {
-          "id": "deal_analytics_stalled",
-          "name": "Deal analytics stalled deals",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "emails_list",
-          "name": "Email list endpoint",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "scoring_rules_list",
-          "name": "Scoring rules list",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
-          "notes": ""
-        },
-        {
-          "id": "dsar_requests_list",
-          "name": "DSAR request management",
-          "check_type": "http_get",
-          "status": "working",
-          "detail": "HTTP 200, contains 'items'",
+          "detail": "HTTP 200, contains 'toggleTheme'",
           "notes": ""
         }
       ],
       "summary": {
-        "total": 25,
-        "working": 25,
+        "total": 22,
+        "working": 17,
         "partial": 0,
         "missing": 0,
-        "not_tested": 0,
+        "not_tested": 5,
         "not_implemented": 0,
-        "score": 100.0,
-        "achievable": 25,
+        "score": 77.3,
+        "achievable": 17,
         "max_achievable_score": 100.0
       }
     }
   ],
   "overall": {
     "total_apps": 1,
-    "total_features": 25,
-    "total_working": 25,
-    "overall_score": 100.0,
-    "total_achievable": 25,
+    "total_features": 22,
+    "total_working": 17,
+    "overall_score": 77.3,
+    "total_achievable": 17,
     "overall_max_achievable_score": 100.0
   }
 }

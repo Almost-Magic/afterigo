@@ -360,18 +360,26 @@ async def get_elaine_briefing(db: AsyncSession = Depends(get_db)):
     }
 
 
-@router.post("/generate", response_model=PulseResponse)
+@router.post("/generate")
 async def force_generate_pulse(db: AsyncSession = Depends(get_db)):
     """Force regenerate today's Pulse (clears cache)."""
     today = date.today()
 
-    # Delete existing actions for today (they'll be regenerated)
+    # Delete existing actions and snapshot for today
     result = await db.execute(
         select(PulseAction).where(PulseAction.snapshot_date == today)
     )
     for action in result.scalars().all():
         await db.delete(action)
-    await db.flush()
+
+    result = await db.execute(
+        select(PulseSnapshot).where(PulseSnapshot.snapshot_date == today)
+    )
+    snap = result.scalar_one_or_none()
+    if snap:
+        await db.delete(snap)
+
+    await db.commit()
 
     pulse = await compile_pulse(db, today)
     return pulse

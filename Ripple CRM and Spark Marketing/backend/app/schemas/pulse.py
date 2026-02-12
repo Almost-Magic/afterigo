@@ -90,7 +90,7 @@ class TargetVsActual(BaseModel):
 
 
 class EasyWin(BaseModel):
-    deal_id: uuid.UUID
+    deal_id: uuid.UUID | None = None
     deal_title: str
     contact_id: uuid.UUID | None = None
     contact_name: str | None = None
