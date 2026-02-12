@@ -10,6 +10,8 @@ from app.database import get_db
 from app.models.contact import Contact
 from app.models.touchpoint import Touchpoint
 from app.schemas.contact import ContactOut, TouchpointOut, JourneyResponse
+from app.schemas.attribution import ATTRIBUTION_MODELS, ContactAttributionResponse
+from app.services.attribution import get_contact_attribution
 
 router = APIRouter(tags=["contacts"])
 
@@ -102,3 +104,16 @@ async def contact_journey(contact_id: UUID, db: AsyncSession = Depends(get_db)):
         ],
         total_touchpoints=total,
     )
+
+
+@router.get("/contacts/{contact_id}/attribution", response_model=ContactAttributionResponse)
+async def contact_attribution(
+    contact_id: UUID,
+    model: ATTRIBUTION_MODELS | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """Attribution records for a contact's deals."""
+    result = await get_contact_attribution(db, contact_id, model)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    return ContactAttributionResponse(**result)

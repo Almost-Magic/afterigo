@@ -98,6 +98,7 @@ Source and Brand/
 │   └── docs/              → Specs, build plan, roadmap
 ├── Touchstone/            → Open Source Marketing Attribution (AMTL Commons, MIT)
 │   ├── backend/           → FastAPI + async SQLAlchemy + Alembic (port 8200)
+│   ├── dashboard/         → React 19 + Vite 7 + Recharts (port 3200)
 │   ├── pixel/             → Tracking pixel (touchstone.js, < 5KB)
 │   └── tests/             → Proof (Playwright) E2E tests
 ├── Code Orchestrator/     → Code management
@@ -126,6 +127,7 @@ Source and Brand/
 | 3100 | Ripple CRM Frontend | React 19 + Vite |
 | 8100 | Ripple CRM API | FastAPI backend, PostgreSQL |
 | 8200 | Touchstone | Open Source Marketing Attribution (AMTL Commons, MIT) |
+| 3200 | Touchstone Dashboard | Attribution React dashboard |
 | 9000 | The Supervisor | Centralised runtime manager |
 
 ### Docker Infrastructure (local-ai-stack)
@@ -311,7 +313,7 @@ Aliases: `ck-writer`/`ck_writer` → writer, `author-studio`/`author` → author
 | **Peterman** | Brand intelligence |
 | **Genie** | AI bookkeeper |
 | **Ripple CRM** | Relationship Intelligence Engine (API :8100, UI :3100) |
-| **Touchstone** | Open Source Marketing Attribution (AMTL Commons, MIT) — :8200 |
+| **Touchstone** | Open Source Marketing Attribution (AMTL Commons, MIT) — API :8200, Dashboard :3200 |
 | **The Supervisor** | Runtime manager (GPU, models, health) — :9000 |
 | **The Foreperson** | Quality inspector (promised vs delivered) |
 | **The Workshop** | Central launcher (App 0) |

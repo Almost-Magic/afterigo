@@ -1,6 +1,6 @@
-"""Proof Test — Touchstone Phase 1: Pixel & API E2E.
+"""Proof Test — Touchstone Phase 1+2: Pixel, API & Dashboard E2E.
 
-Playwright end-to-end tests for the tracking pixel and API.
+Playwright end-to-end tests for the tracking pixel, API, and React dashboard.
 """
 
 import uuid
@@ -9,6 +9,7 @@ from playwright.sync_api import expect
 
 
 API_BASE = "http://localhost:8200"
+DASHBOARD = "http://localhost:3200"
 
 
 def test_health_from_browser(page):
@@ -105,3 +106,84 @@ def test_contacts_endpoint_accessible(page):
     page.goto(f"{API_BASE}/api/v1/contacts")
     content = page.locator("body").inner_text()
     assert "items" in content
+
+
+# ── Phase 2: Dashboard Tests ─────────────────────────────────
+
+def test_dashboard_loads(page):
+    """Dashboard loads on :3200 with correct title."""
+    page.goto(DASHBOARD)
+    page.wait_for_load_state("networkidle")
+    expect(page).to_have_title("Touchstone — Marketing Attribution")
+
+
+def test_dashboard_overview_metric_cards(page):
+    """Overview shows metric cards with labels."""
+    page.goto(DASHBOARD)
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+    content = page.locator("main").inner_text()
+    assert "Total Attributed Revenue" in content
+    assert "Campaigns" in content
+
+
+def test_dashboard_model_selector(page):
+    """Model selector dropdown has 5 attribution models."""
+    page.goto(DASHBOARD)
+    page.wait_for_load_state("networkidle")
+    selector = page.locator("select")
+    expect(selector).to_be_visible()
+    options = selector.locator("option").all_inner_texts()
+    assert len(options) == 5
+    assert "First Touch" in options
+    assert "Linear" in options
+    assert "Position Based" in options
+
+
+def test_dashboard_campaigns_page(page):
+    """Campaign page renders table with data."""
+    page.goto(f"{DASHBOARD}/campaigns")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+    content = page.locator("main").inner_text()
+    assert "Campaign Attribution" in content
+    assert "Revenue" in content
+
+
+def test_dashboard_compare_page(page):
+    """Model comparison page shows pivot table."""
+    page.goto(f"{DASHBOARD}/compare")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+    content = page.locator("main").inner_text()
+    assert "Model Comparison" in content
+    # Should have model column headers
+    assert "First Touch" in content
+    assert "Linear" in content
+
+
+def test_dashboard_contacts_page(page):
+    """Contacts page shows list of contacts."""
+    page.goto(f"{DASHBOARD}/contacts")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(1000)
+    content = page.locator("main").inner_text()
+    assert "Contacts" in content
+
+
+def test_dashboard_dark_mode_toggle(page):
+    """Dark mode toggle switches theme."""
+    page.goto(DASHBOARD)
+    page.wait_for_load_state("networkidle")
+
+    # Default is dark — html should have 'dark' class
+    has_dark = page.evaluate("document.documentElement.classList.contains('dark')")
+    assert has_dark, "Default theme should be dark"
+
+    # Click toggle button
+    page.locator("header button").click()
+    page.wait_for_timeout(300)
+
+    # Now dark class should be removed
+    has_dark_after = page.evaluate("document.documentElement.classList.contains('dark')")
+    assert not has_dark_after, "Theme should switch to light after toggle"

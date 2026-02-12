@@ -107,6 +107,13 @@ $Services = [ordered]@{
         Cmd    = "python -m uvicorn app.main:app --host 0.0.0.0 --port 8200"
         Health = "/api/v1/health"
     }
+    touchstonefe = @{
+        Name   = "Touchstone Dashboard"
+        Port   = 3200
+        Dir    = "$BASE\Touchstone\dashboard"
+        Cmd    = "npx vite --host 0.0.0.0 --port 3200"
+        Health = "/"
+    }
     geniefe = @{
         Name   = "Genie Frontend"
         Port   = 3000

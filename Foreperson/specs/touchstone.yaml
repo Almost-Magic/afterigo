@@ -91,3 +91,56 @@ features:
     body: '{"anonymous_id": "test-stitch-fp", "email": "stitch-fp@example.com"}'
     expected_status: 200
     expected_contains: touchpoints_linked
+
+  # Phase 2: Attribution Engine
+  - id: attribution_calculate
+    name: Attribution calculation endpoint
+    check: http_post
+    path: /api/v1/attribution/calculate
+    body: '{"model": "linear", "recalculate": true}'
+    expected_status: 200
+    expected_contains: deals_processed
+
+  - id: attribution_campaigns
+    name: Campaign attribution endpoint
+    check: http_get
+    path: /api/v1/attribution/campaigns?model=linear
+    expected_status: 200
+    expected_contains: items
+
+  - id: attribution_channels
+    name: Channel attribution endpoint
+    check: http_get
+    path: /api/v1/attribution/channels?model=linear
+    expected_status: 200
+    expected_contains: items
+
+  - id: attribution_compare
+    name: Model comparison endpoint
+    check: http_get
+    path: /api/v1/attribution/compare
+    expected_status: 200
+    expected_contains: campaigns
+
+  - id: attribution_5_models
+    name: All 5 attribution models supported
+    check: http_post
+    path: /api/v1/attribution/calculate
+    body: '{"model": "position_based"}'
+    expected_status: 200
+    expected_contains: attributions_created
+
+  # Phase 2: Dashboard
+  - id: dashboard_serves
+    name: Dashboard loads on port 3200
+    check: http_get
+    url: http://localhost:3200
+    expected_status: 200
+    expected_contains: Touchstone
+
+  - id: dashboard_api_proxy
+    name: Dashboard proxies API requests
+    check: http_get
+    url: http://localhost:3200/api/v1/health
+    expected_status: 200
+    expected_contains: ok

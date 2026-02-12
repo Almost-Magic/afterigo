@@ -172,6 +172,19 @@ services:
     depends_on: []
     on_demand: true
 
+  touchstone-dashboard:
+    name: "Touchstone Dashboard"
+    port: 3200
+    type: node
+    health_check:
+      type: http
+      url: "http://localhost:3200/"
+      interval_seconds: 60
+    start_command: "npx vite --host 0.0.0.0 --port 3200"
+    cwd: "Touchstone/dashboard"
+    depends_on: [touchstone]
+    on_demand: true
+
   foreperson:
     name: "The Foreperson"
     port: 9100

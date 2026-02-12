@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.middleware.rate_limit import RateLimitMiddleware
-from app.api.v1 import health, collect, identify, webhooks, campaigns, contacts
+from app.api.v1 import health, collect, identify, webhooks, campaigns, contacts, attribution
 
 
 @asynccontextmanager
@@ -45,6 +45,7 @@ app.include_router(identify.router, prefix="/api/v1")
 app.include_router(webhooks.router, prefix="/api/v1")
 app.include_router(campaigns.router, prefix="/api/v1")
 app.include_router(contacts.router, prefix="/api/v1")
+app.include_router(attribution.router, prefix="/api/v1")
 
 # Serve the tracking pixel
 PIXEL_DIR = Path(__file__).parent.parent.parent / "pixel"

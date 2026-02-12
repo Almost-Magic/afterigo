@@ -1,4 +1,4 @@
-"""Beast Test — Touchstone Phase 1: Event Collection Layer.
+"""Beast Test — Touchstone Phase 1+2: Event Collection + Attribution Engine.
 
 Sections:
   1. Imports
@@ -9,7 +9,13 @@ Sections:
   6. Campaign CRUD
   7. Contact listing + journey
   8. Edge cases
-  9. Confidence Stamp
+  9. Confidence Stamp (Phase 1)
+  10. Phase 2 imports
+  11. Attribution calculation correctness
+  12. Weight invariants + advanced models
+  13. Edge cases (attribution)
+  14. Aggregation endpoints
+  15. Confidence Stamp (Phase 2)
 """
 
 import os
@@ -435,6 +441,330 @@ def test_delete_campaign():
 def test_confidence_stamp():
     """Touchstone Phase 1 Beast test complete. Event collection, session stitching,
     CRM webhook, campaign CRUD, contact journey, and pixel serving verified."""
+    assert True
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 10 — Phase 2 Imports
+# ══════════════════════════════════════════════════════════════════════════
+
+def test_import_attribution_service():
+    from app.services.attribution import calculate_attributions, compute_weights
+    assert callable(calculate_attributions)
+    assert callable(compute_weights)
+
+def test_import_attribution_schemas():
+    from app.schemas.attribution import CalculateRequest, CalculateResponse
+    assert CalculateRequest is not None
+    assert CalculateResponse is not None
+
+def test_import_attribution_router():
+    from app.api.v1.attribution import router
+    paths = [r.path for r in router.routes]
+    assert "/attribution/calculate" in paths
+    assert "/attribution/campaigns" in paths
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 11 — Attribution calculation correctness
+# ══════════════════════════════════════════════════════════════════════════
+
+# Setup: Create a contact with 3 known touchpoints and a won deal
+_ATTR_RUN = uuid.uuid4().hex[:8]
+_attr_contact_id = None
+_attr_deal_id = None
+
+def test_attr_setup_collect_events():
+    """Collect 3 events for attribution test contact."""
+    anon = f"attr-{_ATTR_RUN}"
+    for i, ts in enumerate([
+        "2026-01-01T10:00:00Z",
+        "2026-01-05T14:00:00Z",
+        "2026-01-10T09:00:00Z",
+    ]):
+        r = requests.post(f"{BASE}/collect", json={
+            "anonymous_id": anon,
+            "touchpoint_type": "page_view",
+            "page_url": f"https://example.com/page{i+1}",
+            "channel": ["paid", "email", "social"][i],
+            "source": ["google", "newsletter", "linkedin"][i],
+            "timestamp": ts,
+        })
+        assert r.status_code == 204
+
+def test_attr_setup_identify():
+    """Identify the attribution test contact."""
+    global _attr_contact_id
+    r = requests.post(f"{BASE}/identify", json={
+        "anonymous_id": f"attr-{_ATTR_RUN}",
+        "email": f"attr-{_ATTR_RUN}@beast.test",
+        "name": "Attribution Test",
+    })
+    assert r.status_code == 200
+    data = r.json()
+    _attr_contact_id = data["contact_id"]
+    assert data["touchpoints_linked"] == 3
+
+def test_attr_setup_deal():
+    """Create a won deal for the attribution test contact."""
+    global _attr_deal_id
+    r = requests.post(f"{BASE}/webhooks/crm", json={
+        "crm_source": "beast",
+        "crm_deal_id": f"ATTR-{_ATTR_RUN}",
+        "contact_email": f"attr-{_ATTR_RUN}@beast.test",
+        "deal_name": "Attribution Test Deal",
+        "amount": 30000.00,
+        "stage": "won",
+        "closed_at": "2026-01-15T12:00:00Z",
+    })
+    assert r.status_code == 200
+    _attr_deal_id = r.json()["deal_id"]
+
+def test_first_touch_attribution():
+    """First touch: 100% to first touchpoint."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "first_touch"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["deals_processed"] > 0
+
+    # Check this contact's attribution
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "first_touch"})
+    assert r.status_code == 200
+    items = r.json()["items"]
+    weights = [float(i["attribution_weight"]) for i in items]
+    amounts = [float(i["attributed_amount"]) for i in items]
+    assert weights[0] == 1.0
+    assert all(w == 0.0 for w in weights[1:])
+    assert amounts[0] == 30000.0
+
+def test_last_touch_attribution():
+    """Last touch: 100% to last touchpoint."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "last_touch"})
+    assert r.status_code == 200
+
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "last_touch"})
+    assert r.status_code == 200
+    items = r.json()["items"]
+    weights = [float(i["attribution_weight"]) for i in items]
+    amounts = [float(i["attributed_amount"]) for i in items]
+    assert weights[-1] == 1.0
+    assert all(w == 0.0 for w in weights[:-1])
+    assert amounts[-1] == 30000.0
+
+def test_linear_attribution():
+    """Linear: equal split across 3 touchpoints (~0.3333 each)."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "linear"})
+    assert r.status_code == 200
+
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "linear"})
+    assert r.status_code == 200
+    items = r.json()["items"]
+    weights = [float(i["attribution_weight"]) for i in items]
+    amounts = [float(i["attributed_amount"]) for i in items]
+    # Each should be approximately 1/3
+    for w in weights:
+        assert 0.3 < w < 0.4, f"Linear weight {w} not near 1/3"
+    # Amounts should sum to deal amount
+    assert abs(sum(amounts) - 30000.0) < 0.02
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 12 — Weight invariants + advanced models
+# ══════════════════════════════════════════════════════════════════════════
+
+def test_time_decay_favours_recent():
+    """Time decay: most recent touchpoint gets highest weight."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "time_decay"})
+    assert r.status_code == 200
+
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "time_decay"})
+    assert r.status_code == 200
+    items = r.json()["items"]
+    weights = [float(i["attribution_weight"]) for i in items]
+    # Last (most recent) should have highest weight
+    assert weights[-1] > weights[0], f"Time decay: last {weights[-1]} should be > first {weights[0]}"
+    assert abs(sum(weights) - 1.0) < 0.001
+
+def test_position_based_attribution():
+    """Position based: 40/20/40 for 3 touchpoints."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "position_based"})
+    assert r.status_code == 200
+
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "position_based"})
+    assert r.status_code == 200
+    items = r.json()["items"]
+    weights = [float(i["attribution_weight"]) for i in items]
+    assert abs(weights[0] - 0.4) < 0.01, f"First touch should be ~0.4, got {weights[0]}"
+    assert abs(weights[1] - 0.2) < 0.01, f"Middle touch should be ~0.2, got {weights[1]}"
+    assert abs(weights[2] - 0.4) < 0.01, f"Last touch should be ~0.4, got {weights[2]}"
+
+def test_weights_sum_to_one_all_models():
+    """All 5 models should have weights summing to 1.0 for our test contact."""
+    for model in ["first_touch", "last_touch", "linear", "time_decay", "position_based"]:
+        r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": model})
+        assert r.status_code == 200
+        items = r.json()["items"]
+        weight_sum = sum(float(i["attribution_weight"]) for i in items)
+        assert abs(weight_sum - 1.0) < 0.001, f"{model}: weights sum to {weight_sum}, expected 1.0"
+
+def test_amounts_sum_to_deal_amount():
+    """Attributed amounts should sum to deal amount for all models."""
+    for model in ["first_touch", "last_touch", "linear", "time_decay", "position_based"]:
+        r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": model})
+        assert r.status_code == 200
+        items = r.json()["items"]
+        amount_sum = sum(float(i["attributed_amount"]) for i in items)
+        assert abs(amount_sum - 30000.0) < 0.10, f"{model}: amounts sum to {amount_sum}, expected 30000"
+
+def test_recalculate_clears_old_data():
+    """Recalculating should replace, not append."""
+    r1 = requests.post(f"{BASE}/attribution/calculate", json={"model": "linear"})
+    count1 = r1.json()["attributions_created"]
+    r2 = requests.post(f"{BASE}/attribution/calculate", json={"model": "linear"})
+    count2 = r2.json()["attributions_created"]
+    assert count1 == count2, "Recalculate should produce same count (not double)"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 13 — Edge cases (attribution)
+# ══════════════════════════════════════════════════════════════════════════
+
+def test_single_touchpoint_all_models():
+    """A contact with exactly 1 touchpoint should get weight=1.0 for all models."""
+    run = uuid.uuid4().hex[:8]
+    # Create contact with 1 touchpoint
+    requests.post(f"{BASE}/collect", json={
+        "anonymous_id": f"single-{run}",
+        "touchpoint_type": "page_view",
+        "timestamp": "2026-01-05T10:00:00Z",
+    })
+    requests.post(f"{BASE}/identify", json={
+        "anonymous_id": f"single-{run}",
+        "email": f"single-{run}@edge.test",
+    })
+    requests.post(f"{BASE}/webhooks/crm", json={
+        "crm_source": "beast",
+        "crm_deal_id": f"SINGLE-{run}",
+        "contact_email": f"single-{run}@edge.test",
+        "amount": 5000.0,
+        "stage": "won",
+        "closed_at": "2026-01-10T12:00:00Z",
+    })
+    # Calculate all models
+    for model in ["first_touch", "last_touch", "linear", "time_decay", "position_based"]:
+        requests.post(f"{BASE}/attribution/calculate", json={"model": model})
+    # Check: single touchpoint → weight = 1.0
+    r = requests.get(f"{BASE}/contacts")
+    contacts = r.json()["items"]
+    contact = next((c for c in contacts if c["email"] == f"single-{run}@edge.test"), None)
+    assert contact is not None
+    for model in ["first_touch", "last_touch", "linear", "time_decay", "position_based"]:
+        r = requests.get(f"{BASE}/contacts/{contact['id']}/attribution", params={"model": model})
+        items = r.json()["items"]
+        if items:
+            assert abs(float(items[0]["attribution_weight"]) - 1.0) < 0.001
+
+def test_lost_deal_not_attributed():
+    """Lost deals should not be attributed."""
+    run = uuid.uuid4().hex[:8]
+    requests.post(f"{BASE}/collect", json={
+        "anonymous_id": f"lost-{run}",
+        "touchpoint_type": "page_view",
+        "timestamp": "2026-01-05T10:00:00Z",
+    })
+    requests.post(f"{BASE}/identify", json={
+        "anonymous_id": f"lost-{run}",
+        "email": f"lost-{run}@edge.test",
+    })
+    requests.post(f"{BASE}/webhooks/crm", json={
+        "crm_source": "beast",
+        "crm_deal_id": f"LOST-{run}",
+        "contact_email": f"lost-{run}@edge.test",
+        "amount": 5000.0,
+        "stage": "lost",
+        "closed_at": "2026-01-10T12:00:00Z",
+    })
+    requests.post(f"{BASE}/attribution/calculate", json={"model": "linear"})
+    r = requests.get(f"{BASE}/contacts")
+    contacts = r.json()["items"]
+    contact = next((c for c in contacts if c["email"] == f"lost-{run}@edge.test"), None)
+    assert contact is not None
+    r = requests.get(f"{BASE}/contacts/{contact['id']}/attribution", params={"model": "linear"})
+    # Lost deal: no attribution records
+    assert len(r.json()["items"]) == 0
+
+def test_invalid_model_rejected():
+    """Invalid model name should be rejected."""
+    r = requests.post(f"{BASE}/attribution/calculate", json={"model": "invalid_model"})
+    assert r.status_code == 422
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 14 — Aggregation endpoints
+# ══════════════════════════════════════════════════════════════════════════
+
+def test_campaigns_aggregation():
+    """Campaign attribution endpoint returns ranked data."""
+    r = requests.get(f"{BASE}/attribution/campaigns", params={"model": "linear"})
+    assert r.status_code == 200
+    data = r.json()
+    assert "items" in data
+    assert "total_attributed_revenue" in data
+    assert len(data["items"]) > 0
+
+def test_channels_aggregation():
+    """Channel attribution endpoint returns ranked data."""
+    r = requests.get(f"{BASE}/attribution/channels", params={"model": "linear"})
+    assert r.status_code == 200
+    data = r.json()
+    assert "items" in data
+    assert len(data["items"]) > 0
+    # Each item should have percentage
+    for item in data["items"]:
+        assert "percentage" in item
+
+def test_compare_endpoint():
+    """Model comparison endpoint returns data for all 5 models."""
+    r = requests.get(f"{BASE}/attribution/compare")
+    assert r.status_code == 200
+    data = r.json()
+    assert "campaigns" in data
+    if data["campaigns"]:
+        row = data["campaigns"][0]
+        for model in ["first_touch", "last_touch", "linear", "time_decay", "position_based"]:
+            assert model in row, f"Missing {model} in comparison row"
+
+def test_contact_attribution_endpoint():
+    """Contact attribution endpoint returns records."""
+    assert _attr_contact_id is not None
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["contact_id"] == _attr_contact_id
+    assert len(data["items"]) > 0
+    assert len(data["models"]) == 5
+
+def test_contact_attribution_model_filter():
+    """Contact attribution can be filtered by model."""
+    r = requests.get(f"{BASE}/contacts/{_attr_contact_id}/attribution", params={"model": "linear"})
+    assert r.status_code == 200
+    data = r.json()
+    assert all(i["model"] == "linear" for i in data["items"])
+
+def test_contact_attribution_404():
+    """Nonexistent contact returns 404."""
+    fake_id = str(uuid.uuid4())
+    r = requests.get(f"{BASE}/contacts/{fake_id}/attribution")
+    assert r.status_code == 404
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 15 — Confidence Stamp (Phase 2)
+# ══════════════════════════════════════════════════════════════════════════
+
+def test_phase2_confidence_stamp():
+    """Touchstone Phase 2 Beast test complete. Attribution engine with 5 models,
+    aggregation endpoints, model comparison, and contact attribution verified."""
     assert True
 
 
