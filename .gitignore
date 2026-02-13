@@ -1,22 +1,39 @@
-﻿# Credentials - NEVER COMMIT
+# Credentials - NEVER COMMIT
 *credentials*.txt
 *secrets*.txt
-*.env
+.env
 .env*
+*.key
+*.pem
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
 
 # Dependencies
 node_modules/
-venv/
-__pycache__/
-*.pyc
 
 # IDE
 .vscode/settings.json
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
@@ -25,3 +42,18 @@ logs/
 # Build
 dist/
 build/
+
+# Data (runtime state — not committed)
+data/
+*.db
+*.sqlite3
+
+# Test artifacts
+confidence_stamp.json
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Archives
+*.tar.gz
+*.zip
