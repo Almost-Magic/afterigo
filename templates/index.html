@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>Elaine — Chief of Staff</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   ALMOST MAGIC DESIGN SYSTEM — Elaine Desktop v3
+   Tokens from AMTL Design System v1.0
+   Dark-mode native. Light mode as adaptation.
+   =================================================================== */
+
+:root {
+  /* AMTL Core Palette — Dark (default) */
+  --midnight:    #0A0E14;
+  --deep-navy:   #151B26;
+  --navy:        #1E2536;
+  --navy-light:  #283044;
+  --cream:       #E8E4DC;
+  --warm-white:  #F5F2ED;
+  --gold:        #C9944A;
+  --amber:       #B37D3A;
+
+  /* Semantic */
+  --success:     #4A9B7F;
+  --success-lt:  #5AB892;
+  --warning:     #D4A04A;
+  --warning-lt:  #E4B85A;
+  --error:       #C75D5D;
+  --error-lt:    #D97070;
+  --info:        #5A8FC9;
+  --info-lt:     #70A3D9;
+
+  /* Neutrals */
+  --n50:  #F8F7F5;
+  --n100: #EFEEE9;
+  --n200: #E0DED6;
+  --n300: #C4C1B8;
+  --n400: #9A968C;
+  --n500: #6E6A62;
+  --n600: #4A4740;
+  --n700: #2D2B27;
+  --n800: #1A1917;
+  --n900: #0D0C0B;
+
+  /* Theme Mappings (dark default) */
+  --bg:          var(--midnight);
+  --surface:     var(--deep-navy);
+  --surface-2:   var(--navy);
+  --surface-3:   var(--navy-light);
+  --border:      var(--navy);
+  --border-lt:   var(--navy-light);
+  --text:        var(--cream);
+  --text-em:     var(--warm-white);
+  --text-muted:  var(--n400);
+  --accent:      var(--gold);
+  --accent-hover:var(--amber);
+  --accent-glow: rgba(201,148,74,0.08);
+
+  /* Spacing (4px base) */
+  --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:20px; --sp6:24px; --sp8:32px; --sp10:40px; --sp12:48px;
+
+  /* Radii */
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.15);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* -- LIGHT THEME -- */
+[data-theme="light"] {
+  --bg:          var(--n50);
+  --surface:     var(--n100);
+  --surface-2:   var(--n200);
+  --surface-3:   #ffffff;
+  --border:      var(--n200);
+  --border-lt:   var(--n300);
+  --text:        var(--n700);
+  --text-em:     var(--n800);
+  --text-muted:  var(--n500);
+  --accent-glow: rgba(201,148,74,0.12);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* -- RESET -- */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sora',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;font-size:13px;line-height:1.5;transition:background .3s,color .3s}
+
+/* -- CUSTOM TITLEBAR -- */
+.titlebar{height:38px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;-webkit-app-region:drag;flex-shrink:0;position:fixed;top:0;left:0;right:0;z-index:100}
+.titlebar-brand{display:flex;align-items:center;gap:10px}
+.titlebar-logo{width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--bg)}
+.titlebar-name{font-weight:600;font-size:12px;color:var(--accent);letter-spacing:.5px}
+.titlebar-right{display:flex;align-items:center;gap:12px;-webkit-app-region:no-drag}
+.titlebar-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2.5s ease-in-out infinite}
+.status-dot.offline{background:var(--error);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.theme-toggle{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:4px 10px;font-family:inherit;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all .2s}
+.theme-toggle:hover{color:var(--text);border-color:var(--accent)}
+
+/* -- APP LAYOUT -- */
+.app{display:flex;height:100vh;padding-top:38px;width:100%}
+
+/* -- SIDEBAR -- */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:background .3s}
+.sidebar-section{padding:var(--sp4) var(--sp3)}
+.sidebar-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);padding:0 var(--sp3);margin-bottom:var(--sp2)}
+
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r-md);color:var(--text-muted);cursor:pointer;transition:all .15s;margin-bottom:1px;font-size:13px}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--accent-glow);color:var(--accent);font-weight:500}
+.nav-icon{width:20px;text-align:center;font-size:15px}
+.nav-badge{background:var(--accent);color:var(--bg);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:auto}
+
+.sidebar-stats{padding:var(--sp4) var(--sp4);border-top:1px solid var(--border);margin-top:auto}
+.stat-row{display:flex;justify-content:space-between;padding:4px 0}
+.stat-label{font-size:11px;color:var(--text-muted)}
+.stat-value{font-size:11px;font-weight:600;color:var(--text)}
+
+/* -- MAIN CONTENT -- */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:var(--sp4) var(--sp6);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.main-title{font-size:16px;font-weight:600;color:var(--text-em)}
+.main-subtitle{font-size:12px;color:var(--text-muted);margin-left:var(--sp3)}
+
+.panels{flex:1;overflow:hidden}
+.panel{display:none;height:100%;overflow-y:auto}
+.panel.active{display:block}
+.panel::-webkit-scrollbar{width:5px}
+.panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* -- DASHBOARD -- */
+.dashboard{padding:var(--sp6);display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp4);align-content:start}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp5);transition:all .2s;box-shadow:var(--shadow-sm)}
+.card:hover{border-color:var(--border-lt);box-shadow:var(--shadow-md)}
+.card.span-2{grid-column:span 2}
+.card.span-3{grid-column:span 3}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp3)}
+.card-label{font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text-muted);font-weight:500}
+.card-action{font-size:11px;color:var(--accent);cursor:pointer;font-weight:500}
+.card-action:hover{color:var(--accent-hover)}
+.card-big{font-size:36px;font-weight:700;color:var(--text-em);line-height:1}
+.card-med{font-size:22px;font-weight:600;color:var(--text-em)}
+.card-sub{font-size:12px;color:var(--text-muted);margin-top:var(--sp2)}
+
+/* Wellbeing Bar */
+.wb-bar{height:5px;border-radius:3px;background:var(--border);margin-top:var(--sp3)}
+.wb-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.wb-fill.thriving{background:var(--success);width:100%}
+.wb-fill.steady{background:var(--success);width:75%}
+.wb-fill.stretched{background:var(--warning);width:50%}
+.wb-fill.strained{background:var(--error);width:25%}
+.wb-fill.depleted{background:var(--error);width:10%}
+
+/* Gravity Items */
+.grav-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.grav-item:last-child{border-bottom:none}
+.grav-force{font-size:20px;font-weight:700;min-width:40px;text-align:center}
+.grav-force.red{color:var(--error)}.grav-force.amber{color:var(--warning)}.grav-force.green{color:var(--success)}
+.grav-name{flex:1;font-size:13px}
+
+/* Gate Stats */
+.gate-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.gate-row:last-child{border-bottom:none}
+.gate-lbl{color:var(--text-muted);font-size:13px}
+.gate-val{font-weight:600;font-size:13px}
+
+/* Module Grid */
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp2)}
+.mod-chip{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:var(--r-md);font-size:11px}
+.mod-dot{width:5px;height:5px;border-radius:50%;background:var(--success)}
+
+/* Briefing */
+.briefing-text{font-size:15px;line-height:1.8;color:var(--text)}
+.briefing-close{font-size:13px;color:var(--accent);font-style:italic;margin-top:var(--sp3)}
+
+/* Morning Brief Panel */
+.brief-panel{padding:var(--sp6);max-width:800px}
+.brief-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp4)}
+.brief-header-left{display:flex;align-items:center;gap:var(--sp3)}
+.brief-header h2{font-size:18px;font-weight:600;color:var(--text-em);margin:0}
+.brief-meta{font-size:11px;color:var(--text-muted)}
+.brief-actions{display:flex;gap:var(--sp2)}
+.brief-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:6px 14px;font-family:inherit;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.brief-btn:hover{color:var(--text);border-color:var(--accent)}
+.brief-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:500}
+.brief-btn.primary:hover{background:var(--accent-hover)}
+.brief-btn:disabled{opacity:.5;cursor:not-allowed}
+.brief-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp6);font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;box-shadow:var(--shadow-sm)}
+.brief-content h3{font-size:16px;font-weight:600;color:var(--accent);margin:var(--sp4) 0 var(--sp2)}
+.brief-content strong{color:var(--text-em)}
+.brief-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:var(--sp2) 0}
+.brief-status .dot{width:6px;height:6px;border-radius:50%}
+.brief-status .dot.ok{background:var(--success)}
+.brief-status .dot.fallback{background:var(--warning)}
+.brief-loading{display:flex;align-items:center;gap:10px;padding:var(--sp6);color:var(--text-muted);font-size:13px}
+.brief-spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* -- CHAT PANEL -- */
+.chat-panel{display:flex;flex-direction:column;height:100%}
+.chat-msgs{flex:1;overflow-y:auto;padding:var(--sp6)}
+.chat-msgs::-webkit-scrollbar{width:5px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.msg{margin-bottom:var(--sp4);max-width:70%;animation:msgIn .25s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{margin-left:auto}
+.msg.elaine{margin-right:auto}
+.msg-who{font-size:10px;color:var(--text-muted);margin-bottom:3px;padding:0 6px}
+.msg.user .msg-who{text-align:right}
+.msg-bubble{padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.6;white-space:pre-wrap}
+.msg.user .msg-bubble{background:var(--accent);color:var(--bg);border-bottom-right-radius:var(--r-sm)}
+.msg.elaine .msg-bubble{background:var(--surface-2);border:1px solid var(--border);border-bottom-left-radius:var(--r-sm)}
+
+.msg-via{font-size:10px;color:var(--text-muted);margin-top:2px;padding:0 6px}
+
+.chat-bar{padding:var(--sp4) var(--sp6);border-top:1px solid var(--border);display:flex;gap:var(--sp2);flex-shrink:0;background:var(--surface)}
+.chat-input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);color:var(--text);font-family:inherit;font-size:13px;padding:10px 16px;outline:none;transition:border .2s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::placeholder{color:var(--text-muted)}
+.chat-btn{background:var(--accent);color:var(--bg);border:none;border-radius:var(--r-lg);width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .15s;font-weight:700}
+.chat-btn:hover{background:var(--accent-hover)}
+.chat-btn:disabled{opacity:0.5;cursor:not-allowed}
+.chat-btn.mic{background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted)}
+.chat-btn.mic:hover{color:var(--text);border-color:var(--accent)}
+.chat-btn.mic.recording{background:var(--error);color:#fff;border-color:var(--error);animation:pulse 1s infinite}
+.chat-btn.speaker{background:var(--surface-2);border:2px solid var(--accent);color:var(--accent);font-size:18px;min-width:42px}
+.chat-btn.speaker:hover{background:rgba(201,168,76,0.2);color:var(--accent);border-color:var(--accent)}
+.chat-btn.speaker.active{background:var(--accent);color:var(--bg);border-color:var(--accent);box-shadow:0 0 12px rgba(201,168,76,0.4)}
+
+/* Voice Mode Toggle (gold pencil) */
+.voice-mode-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .25s;color:var(--text-muted);position:relative}
+.voice-mode-btn:hover{color:var(--gold);border-color:var(--gold)}
+.voice-mode-btn.active{background:var(--gold);color:var(--bg);border-color:var(--gold);box-shadow:0 0 12px rgba(201,148,74,0.3)}
+.voice-mode-btn.active:hover{background:var(--amber)}
+.voice-mode-indicator{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--success);display:none;border:2px solid var(--surface)}
+.voice-mode-btn.active .voice-mode-indicator{display:block;animation:pulse 2s infinite}
+
+/* Voice mode bar */
+.voice-bar{display:none;padding:6px var(--sp6);background:rgba(201,148,74,0.08);border-top:1px solid rgba(201,148,74,0.2);font-size:11px;color:var(--gold);text-align:center;flex-shrink:0}
+.voice-bar.active{display:block}
+
+/* Typing indicator */
+.typing-dots{display:inline-flex;gap:4px;padding:4px 0}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:dotBounce 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* -- TOOLS PANEL -- */
+.tools-grid{padding:var(--sp6);display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--sp4);align-content:start}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp5);transition:all .2s;cursor:pointer;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:var(--sp2)}
+.tool-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md)}
+.tool-card-top{display:flex;align-items:center;justify-content:space-between}
+.tool-card-name{font-weight:600;font-size:14px;color:var(--text-em)}
+.tool-card-status{display:flex;align-items:center;gap:5px;font-size:11px}
+.tool-card-status .dot{width:7px;height:7px;border-radius:50%}
+.tool-card-status .dot.running{background:var(--success)}
+.tool-card-status .dot.stopped{background:var(--error)}
+.tool-card-status .dot.checking{background:var(--warning);animation:pulse 1s infinite}
+.tool-card-desc{font-size:12px;color:var(--text-muted)}
+.tool-card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:var(--sp2)}
+.tool-card-port{font-size:11px;color:var(--text-muted);font-family:monospace}
+.tool-card-link{font-size:11px;color:var(--accent);text-decoration:none;font-weight:500}
+.tool-card-link:hover{color:var(--accent-hover)}
+.tool-card-latency{font-size:10px;color:var(--text-muted)}
+.tool-cat-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);background:var(--surface-2);padding:2px 8px;border-radius:var(--r-sm);font-weight:500}
+
+/* Service summary bar */
+.svc-bar{display:flex;align-items:center;gap:var(--sp4);padding:var(--sp3) var(--sp6);background:var(--surface);border-bottom:1px solid var(--border);font-size:12px}
+.svc-bar-item{display:flex;align-items:center;gap:5px}
+.svc-bar-item .dot{width:6px;height:6px;border-radius:50%}
+
+/* -- GATEKEEPER CHECK PANEL -- */
+.check-area{padding:var(--sp6);max-width:700px}
+.check-textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);color:var(--text);font-family:inherit;font-size:13px;padding:var(--sp4);resize:vertical;min-height:160px;outline:none;transition:border .2s}
+.check-textarea:focus{border-color:var(--accent)}
+.check-btn{background:var(--accent);color:var(--bg);border:none;border-radius:var(--r-md);padding:10px 24px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;margin-top:var(--sp3);transition:background .15s}
+.check-btn:hover{background:var(--accent-hover)}
+.check-result{margin-top:var(--sp4);padding:var(--sp4);background:var(--surface-2);border-radius:var(--r-lg);font-size:13px;line-height:1.6;display:none}
+.check-result.clear{border-left:3px solid var(--success)}
+.check-result.review{border-left:3px solid var(--warning)}
+.check-result.hold{border-left:3px solid var(--error)}
+
+/* -- RESPONSIVE -- */
+@media(max-width:1000px){
+  .dashboard{grid-template-columns:1fr 1fr}
+  .card.span-3{grid-column:span 2}
+  .tools-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div class="titlebar">
+  <div class="titlebar-brand">
+    <div class="titlebar-logo">E</div>
+    <span class="titlebar-name">ELAINE</span>
+    <span style="font-size:11px;color:var(--text-muted);margin-left:4px">Chief of Staff</span>
+  </div>
+  <div class="titlebar-right">
+    <div class="titlebar-status">
+      <div class="status-dot" id="sDot"></div>
+      <span id="sTxt">Connecting...</span>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">&#9788; Light</button>
+  </div>
+</div>
+
+<div class="app">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Navigate</div>
+    <div class="nav-item active" data-p="dashboard"><span class="nav-icon">&#9673;</span>Dashboard</div>
+    <div class="nav-item" data-p="briefing"><span class="nav-icon">&#9788;</span>Morning Brief</div>
+    <div class="nav-item" data-p="chat"><span class="nav-icon">&#128172;</span>Chat<span class="nav-badge" id="chatBadge" style="display:none">!</span></div>
+    <div class="nav-item" data-p="tools"><span class="nav-icon">&#9881;</span>Tools</div>
+    <div class="nav-item" data-p="gravity"><span class="nav-icon">&#9883;</span>Gravity Field</div>
+    <div class="nav-item" data-p="gatekeeper"><span class="nav-icon">&#128737;</span>Gatekeeper</div>
+    <div class="nav-item" data-p="check"><span class="nav-icon">&#10003;</span>Quick Check</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Intelligence</div>
+    <div class="nav-item" data-p="sentinel"><span class="nav-icon">&#128269;</span>Sentinel</div>
+    <div class="nav-item" data-p="learning"><span class="nav-icon">&#128225;</span>Learning Radar</div>
+    <div class="nav-item" data-p="constellation"><span class="nav-icon">&#11088;</span>Constellation</div>
+  </div>
+  <div class="sidebar-stats">
+    <div class="stat-row"><span class="stat-label">Modules</span><span class="stat-value" id="sModules">&mdash;</span></div>
+    <div class="stat-row"><span class="stat-label">Services</span><span class="stat-value" id="sServices">&mdash;</span></div>
+    <div class="stat-row"><span class="stat-label">Wellbeing</span><span class="stat-value" id="sWellbeing">&mdash;</span></div>
+    <div class="stat-row"><span class="stat-label">Checked</span><span class="stat-value" id="sChecked">0</span></div>
+  </div>
+</div>
+
+<!-- MAIN AREA -->
+<div class="main">
+  <div class="main-header">
+    <div style="display:flex;align-items:baseline">
+      <span class="main-title" id="pageTitle">Dashboard</span>
+      <span class="main-subtitle" id="pageTime"></span>
+    </div>
+  </div>
+  <div class="panels">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="p-dashboard">
+      <div class="dashboard">
+        <!-- Wellbeing -->
+        <div class="card">
+          <div class="card-head"><span class="card-label">Wellbeing</span></div>
+          <div class="card-big" id="dWellbeing">&mdash;</div>
+          <div class="wb-bar"><div class="wb-fill" id="dWbBar"></div></div>
+          <div class="card-sub" id="dWbRec"></div>
+        </div>
+        <!-- Modules -->
+        <div class="card">
+          <div class="card-head"><span class="card-label">Modules Active</span></div>
+          <div class="card-big" id="dModules">&mdash;</div>
+          <div class="card-sub">All systems operational</div>
+        </div>
+        <!-- AMTL Services -->
+        <div class="card">
+          <div class="card-head"><span class="card-label">AMTL Services</span><span class="card-action" onclick="nav('tools')">View All &rarr;</span></div>
+          <div class="card-big" id="dSvcCount">&mdash;</div>
+          <div class="card-sub" id="dSvcSub">Checking services...</div>
+        </div>
+        <!-- Morning Briefing -->
+        <div class="card span-2">
+          <div class="card-head"><span class="card-label">This Morning</span><span class="card-action" onclick="nav('briefing')">Full Brief &rarr;</span></div>
+          <div class="briefing-text" id="dBriefOpen">Connecting to Elaine...</div>
+          <div id="dBriefSummary" style="font-size:12px;color:var(--text-muted);margin-top:var(--sp2)"></div>
+          <div class="briefing-close" id="dBriefClose"></div>
+        </div>
+        <!-- Gravity Top 3 -->
+        <div class="card">
+          <div class="card-head"><span class="card-label">Top Priorities</span><span class="card-action" onclick="nav('gravity')">All &rarr;</span></div>
+          <div id="dGravTop">&mdash;</div>
+        </div>
+        <!-- Module Grid -->
+        <div class="card span-3">
+          <div class="card-head"><span class="card-label">Active Modules</span></div>
+          <div class="mod-grid" id="dModGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORNING BRIEF -->
+    <div class="panel" id="p-briefing">
+      <div class="brief-panel">
+        <div class="brief-header">
+          <div class="brief-header-left">
+            <h2>Morning Brief</h2>
+            <div class="brief-status" id="briefStatus"></div>
+          </div>
+          <div class="brief-actions">
+            <button class="brief-btn" onclick="loadBriefing()" id="briefRefreshBtn">Refresh</button>
+            <button class="brief-btn primary" onclick="generateBriefing()" id="briefGenBtn">Generate Now</button>
+          </div>
+        </div>
+        <div class="brief-meta" id="briefMeta">No briefing loaded yet.</div>
+        <div class="brief-content" id="briefContent" style="margin-top:var(--sp3)">
+          <span style="color:var(--text-muted)">Click "Generate Now" to create today's brief, or "Refresh" to load the latest stored one.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="panel" id="p-chat">
+      <div class="chat-panel">
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="msg elaine"><div class="msg-who">Elaine</div><div class="msg-bubble" id="chatHello">Connecting...</div></div>
+        </div>
+        <div class="voice-bar" id="voiceBar">Voice Mode ON — listening after each reply. Click gold button to disable.</div>
+        <div class="chat-bar">
+          <button class="voice-mode-btn" id="voiceModeBtn" onclick="toggleVoiceMode()" title="Toggle Voice Mode (ElevenLabs + mic)">&#9998;<span class="voice-mode-indicator"></span></button>
+          <button class="chat-btn mic" id="micBtn" onclick="toggleMic()" title="Click to speak (Chrome/Edge)">&#127908;</button>
+          <input class="chat-input" id="chatIn" placeholder="Talk to Elaine..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendChat()}">
+          <button class="chat-btn speaker" id="speakerBtn" onclick="toggleSpeaker()" title="Toggle voice output">&#128264;</button>
+          <button class="chat-btn" id="sendBtn" onclick="sendChat()" title="Send">&rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div class="panel" id="p-tools">
+      <div class="svc-bar" id="toolsBar">
+        <span style="font-weight:600;color:var(--text-em)">AMTL Services</span>
+        <span id="toolsBarSummary" style="color:var(--text-muted)">Loading...</span>
+        <button onclick="loadToolsHealth()" style="margin-left:auto;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:4px 12px;font-family:inherit;font-size:11px;color:var(--text-muted);cursor:pointer">Refresh</button>
+      </div>
+      <div class="tools-grid" id="toolsGrid">
+        <div style="color:var(--text-muted);padding:var(--sp6)">Loading tools...</div>
+      </div>
+    </div>
+
+    <!-- GRAVITY -->
+    <div class="panel" id="p-gravity">
+      <div style="padding:var(--sp6);max-width:700px">
+        <div class="card"><div class="card-head"><span class="card-label">Gravity Field &mdash; All Items</span></div><div id="gravAll"><span style="color:var(--text-muted)">Loading...</span></div></div>
+      </div>
+    </div>
+
+    <!-- GATEKEEPER -->
+    <div class="panel" id="p-gatekeeper">
+      <div style="padding:var(--sp6);max-width:700px">
+        <div class="card"><div class="card-head"><span class="card-label">Gatekeeper Status</span></div><div id="gateStats">Loading...</div></div>
+        <div class="card" style="margin-top:var(--sp4)"><div class="card-head"><span class="card-label">Outlook Rules</span></div><div id="gateRules">Loading...</div></div>
+        <div class="card" style="margin-top:var(--sp4)"><div class="card-head"><span class="card-label">Watched Folders</span></div><div id="gateFolders">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- QUICK CHECK -->
+    <div class="panel" id="p-check">
+      <div class="check-area">
+        <div class="card">
+          <div class="card-head"><span class="card-label">Quick Gatekeeper Check</span></div>
+          <p style="color:var(--text-muted);margin-bottom:var(--sp3);font-size:12px">Paste an email, message, or document content. Elaine will scan it through Sentinel, Compassion, and Communication checks before you send.</p>
+          <textarea class="check-textarea" id="chkContent" placeholder="Paste content here..."></textarea>
+          <button class="check-btn" onclick="runCheck()">Check Before Sending</button>
+          <div class="check-result" id="chkResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENTINEL -->
+    <div class="panel" id="p-sentinel">
+      <div style="padding:var(--sp6);max-width:700px">
+        <div class="card"><div class="card-head"><span class="card-label">Sentinel &mdash; Trust Engine</span></div>
+          <p style="color:var(--text-muted);margin-bottom:var(--sp3)">Sentinel reviews all content for trust surface quality, dangerous language, audience fit, and risk economics.</p>
+          <div id="sentinelStatus">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEARNING -->
+    <div class="panel" id="p-learning">
+      <div style="padding:var(--sp6);max-width:700px">
+        <div class="card"><div class="card-head"><span class="card-label">Learning Radar &mdash; Interests</span></div><div id="learnInterests">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- CONSTELLATION -->
+    <div class="panel" id="p-constellation">
+      <div style="padding:var(--sp6);max-width:700px">
+        <div class="card"><div class="card-head"><span class="card-label">Constellation &mdash; Relationship Intelligence</span></div>
+          <p style="color:var(--text-muted)">POI profiles, trust ledger, reciprocity tracking, and network intelligence.</p>
+          <div id="constellationData" style="margin-top:var(--sp3)">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+/* === Theme Toggle === */
+function toggleTheme(){
+  var h=document.documentElement,b=document.getElementById('themeBtn');
+  if(h.dataset.theme==='dark'){h.dataset.theme='light';b.innerHTML='&#127769; Dark'}
+  else{h.dataset.theme='dark';b.innerHTML='&#9788; Light'}
+  try{localStorage.setItem('elaine-theme',h.dataset.theme)}catch(e){}
+}
+try{var saved=localStorage.getItem('elaine-theme');if(saved){document.documentElement.dataset.theme=saved;if(saved==='light')document.getElementById('themeBtn').innerHTML='&#127769; Dark'}}catch(e){}
+
+/* === Navigation === */
+function nav(p){
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');if(n.dataset.p===p)n.classList.add('active')});
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
+  var el=document.getElementById('p-'+p);if(el)el.classList.add('active');
+  var titles={'dashboard':'Dashboard','briefing':'Morning Brief','chat':'Chat with Elaine','tools':'AMTL Tools','gravity':'Gravity Field','gatekeeper':'Gatekeeper','check':'Quick Check','sentinel':'Sentinel','learning':'Learning Radar','constellation':'Constellation'};
+  document.getElementById('pageTitle').textContent=titles[p]||p;
+  if(p==='tools')loadToolsHealth();
+  if(p==='briefing')loadBriefing();
+}
+document.querySelectorAll('.nav-item').forEach(function(n){n.addEventListener('click',function(){nav(n.dataset.p)})});
+if(window.elaine){window.elaine.onNavigate(function(p){nav(p)})}
+
+/* === Time === */
+function tick(){var d=new Date();document.getElementById('pageTime').textContent=d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' \u00B7 '+d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}
+tick();setInterval(tick,30000);
+
+/* === API Helper === */
+async function api(m,p,b){
+  if(window.elaine)return window.elaine.api(m,p,b);
+  var o={method:m,headers:{'Content-Type':'application/json'}};
+  if(b)o.body=JSON.stringify(b);
+  var r=await fetch(p,o);return r.json();
+}
+
+/* === Tool/Service Data === */
+var toolsData=[];
+var toolsHealth={};
+
+async function loadToolsHealth(){
+  try{
+    var [tr,hr]=await Promise.all([api('GET','/api/tools'),api('GET','/api/tools/health')]);
+    toolsData=tr.tools||[];
+    toolsHealth=hr.services||{};
+    var running=hr.running||0,total=hr.total||0;
+    renderTools();
+    document.getElementById('dSvcCount').textContent=running+'/'+total;
+    document.getElementById('dSvcSub').textContent=running===total?'All services operational':((total-running)+' service'+(total-running>1?'s':'')+' offline');
+    document.getElementById('sServices').textContent=running+'/'+total;
+    document.getElementById('toolsBarSummary').textContent=running+'/'+total+' running';
+  }catch(e){
+    document.getElementById('toolsBarSummary').textContent='Error loading';
+    document.getElementById('dSvcCount').textContent='?';
+    document.getElementById('dSvcSub').textContent='Cannot reach service registry';
+  }
+}
+
+function renderTools(){
+  var grid=document.getElementById('toolsGrid');
+  var cats={core:'Core',business:'Business',creative:'Creative',intelligence:'Intelligence',learning:'Learning',finance:'Finance',infra:'Infrastructure'};
+  var grouped={};
+  toolsData.forEach(function(t){
+    var c=t.category||'other';
+    if(!grouped[c])grouped[c]=[];
+    grouped[c].push(t);
+  });
+  var html='';
+  Object.keys(cats).forEach(function(cat){
+    var items=grouped[cat];
+    if(!items)return;
+    items.forEach(function(t){
+      var h=toolsHealth[t.id]||{};
+      var st=h.status||'checking';
+      var lat=h.latency_ms;
+      html+='<div class="tool-card" onclick="window.open(\''+t.url+'\',\'_blank\')">';
+      html+='<div class="tool-card-top">';
+      html+='<div class="tool-card-name">'+t.name+'</div>';
+      html+='<div class="tool-card-status"><div class="dot '+st+'"></div>'+st;
+      if(lat)html+=' <span class="tool-card-latency">('+lat+'ms)</span>';
+      html+='</div></div>';
+      html+='<div class="tool-card-desc">'+t.desc+'</div>';
+      html+='<div class="tool-card-bottom">';
+      html+='<span class="tool-card-port">:'+t.port+'</span>';
+      html+='<span class="tool-cat-label">'+cats[t.category]+'</span>';
+      html+='<a class="tool-card-link" href="'+t.url+'" target="_blank" onclick="event.stopPropagation()">Open &rarr;</a>';
+      html+='</div></div>';
+    });
+  });
+  grid.innerHTML=html||'<div style="color:var(--text-muted)">No tools registered</div>';
+}
+
+/* === Load Dashboard Data === */
+async function loadAll(){
+  try{
+    var s=await api('GET','/api/status');
+    if(s.error)throw new Error(s.error);
+    document.getElementById('sDot').classList.remove('offline');
+    document.getElementById('sTxt').textContent='Connected';
+
+    var mods=Object.keys(s.modules||{});
+    document.getElementById('dModules').textContent=mods.length;
+    document.getElementById('sModules').textContent=mods.length;
+    document.getElementById('dModGrid').innerHTML=mods.map(function(m){return '<div class="mod-chip"><div class="mod-dot"></div>'+m+'</div>'}).join('');
+
+    document.getElementById('chatHello').innerHTML="Good morning, Mani. I'm connected to Ollama \u2014 ask me anything.<br><br><small style='color:var(--text-muted)'>I know about all your AMTL tools, priorities, relationships, and content. Try asking about your tools, priorities, or just have a conversation.</small>";
+
+    try{
+      var c=await api('GET','/api/compassion/wellbeing');
+      var lv=c.wellbeing_level||'steady';
+      var lvCap=lv[0].toUpperCase()+lv.slice(1);
+      document.getElementById('dWellbeing').textContent=lvCap;
+      document.getElementById('sWellbeing').textContent=lvCap;
+      document.getElementById('dWbBar').className='wb-fill '+lv;
+      document.getElementById('dWbRec').textContent=c.recommendation||'';
+      document.getElementById('dBriefOpen').textContent=c.opening||"Here's what's on the radar.";
+      document.getElementById('dBriefClose').textContent=c.closing||'';
+    }catch(e){}
+
+    try{
+      var g=await api('GET','/api/gravity/top?limit=8');
+      var items=g.items||[];
+      document.getElementById('dGravTop').innerHTML=items.slice(0,3).map(function(x){
+        var m=x.mass||x.force||0,cl=m>=80?'red':m>=50?'amber':'green';
+        return '<div class="grav-item"><div class="grav-force '+cl+'">'+Math.round(m)+'</div><div class="grav-name">'+(x.title||x.name||'')+'</div></div>';
+      }).join('')||'<span style="color:var(--text-muted)">No items</span>';
+      document.getElementById('gravAll').innerHTML=items.map(function(x){
+        var m=x.mass||x.force||0,cl=m>=80?'red':m>=50?'amber':'green';
+        return '<div class="grav-item"><div class="grav-force '+cl+'">'+Math.round(m)+'</div><div class="grav-name">'+(x.title||x.name||'')+'</div></div>';
+      }).join('')||'<span style="color:var(--text-muted)">Gravity field is clear</span>';
+    }catch(e){}
+
+    try{
+      var gt=await api('GET','/api/gatekeeper/status');
+      document.getElementById('sChecked').textContent=gt.items_checked||0;
+      document.getElementById('gateStats').innerHTML=[
+        ['Items Checked',gt.items_checked||0],['Items Held',gt.items_held||0,'var(--error)'],
+        ['Overrides',gt.overrides||0],['Watched Folders',gt.watched_folders||0],['Outlook Rules',gt.outlook_rules||0]
+      ].map(function(r){return '<div class="gate-row"><span class="gate-lbl">'+r[0]+'</span><span class="gate-val"'+(r[2]?' style="color:'+r[2]+'"':'')+'>'+r[1]+'</span></div>'}).join('');
+    }catch(e){}
+
+    try{
+      var rules=await api('GET','/api/gatekeeper/outlook-rules');
+      document.getElementById('gateRules').innerHTML=(rules.rules||[]).map(function(r){return '<div class="gate-row"><span class="gate-lbl">'+r.name+'</span><span class="gate-val">'+r.priority+'</span></div>'}).join('')||'No rules';
+    }catch(e){}
+
+    try{
+      var folders=await api('GET','/api/gatekeeper/folders');
+      document.getElementById('gateFolders').innerHTML=(folders.folders||[]).map(function(f){return '<div class="gate-row"><span class="gate-lbl" style="font-size:11px">'+f.path+'</span><span class="gate-val">'+f.priority+'</span></div>'}).join('')||'No folders';
+    }catch(e){}
+
+    try{
+      var lr=await api('GET','/api/learning/interests');
+      document.getElementById('learnInterests').innerHTML=(lr.interests||[]).map(function(i){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div style="width:6px;height:6px;border-radius:50%;background:var(--info)"></div><span>'+i.topic+'</span></div>'}).join('')||'<span style="color:var(--text-muted)">No interests tracked yet</span>';
+    }catch(e){}
+
+    try{
+      var ss=await api('GET','/api/sentinel/status');
+      document.getElementById('sentinelStatus').innerHTML='<div class="gate-row"><span class="gate-lbl">Reviews</span><span class="gate-val">'+(ss.total_reviews||0)+'</span></div><div class="gate-row"><span class="gate-lbl">Positions Tracked</span><span class="gate-val">'+(ss.positions_tracked||0)+'</span></div>';
+    }catch(e){document.getElementById('sentinelStatus').innerHTML='<span style="color:var(--text-muted)">Status available when reviews are run</span>'}
+
+    try{
+      var cn=await api('GET','/api/constellation/pois');
+      document.getElementById('constellationData').innerHTML=(cn.pois||[]).slice(0,10).map(function(p){return '<div class="gate-row"><span class="gate-lbl">'+p.name+'</span><span class="gate-val">'+p.relationship_type+'</span></div>'}).join('')||'<span style="color:var(--text-muted)">No POIs tracked yet</span>';
+    }catch(e){document.getElementById('constellationData').innerHTML='<span style="color:var(--text-muted)">Add people to start tracking relationships</span>'}
+
+  }catch(e){
+    document.getElementById('sDot').classList.add('offline');
+    document.getElementById('sTxt').textContent='Offline';
+    document.getElementById('chatHello').textContent="Elaine is offline. Start the server first.";
+    document.getElementById('dBriefOpen').textContent="Server not running. Start with: python app.py";
+  }
+}
+
+/* === Chat === */
+var chatMsgs=document.getElementById('chatMsgs'),chatIn=document.getElementById('chatIn');
+var chatHistory=[];
+var chatBusy=false;
+
+function addMsg(t,s,via){
+  var d=document.createElement('div');d.className='msg '+s;
+  var html='<div class="msg-who">'+(s==='user'?'You':'Elaine')+'</div><div class="msg-bubble">'+t+'</div>';
+  if(via)html+='<div class="msg-via">via '+via+'</div>';
+  d.innerHTML=html;chatMsgs.appendChild(d);chatMsgs.scrollTop=chatMsgs.scrollHeight;
+}
+
+function addTyping(){
+  var d=document.createElement('div');d.className='msg elaine';d.id='typing';
+  d.innerHTML='<div class="msg-who">Elaine</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  chatMsgs.appendChild(d);chatMsgs.scrollTop=chatMsgs.scrollHeight;
+}
+
+function removeTyping(){var el=document.getElementById('typing');if(el)el.remove()}
+
+function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+async function sendChat(){
+  if(chatBusy)return;
+  var t=chatIn.value.trim();if(!t)return;
+  chatIn.value='';
+  addMsg(escHtml(t),'user');
+
+  var l=t.toLowerCase();
+
+  /* Fast-path shortcuts for local ELAINE APIs */
+  try{
+    /* Frustration logging - always handle locally */
+    if(l.match(/frustrat|friction|log frustration|that.s annoying|ugh/)){
+      var ftext=t.replace(/^(elaine,?\s*)?(log\s+)?frustrat(ion)?:?\s*/i,'').trim();
+      if(!ftext)ftext=t;
+      var r=await api('POST','/api/frustration',{text:ftext,source:'elaine'});
+      addMsg("Logged in the friction file. I'll make sure it gets addressed.",'elaine','local');
+      return;
+    }
+    /* Gatekeeper check - local processing */
+    if(l.match(/^check this|^review this|^before i send|^scan this/)){
+      var r=await api('POST','/api/gatekeeper/check',{content:t,title:'Chat check'});
+      var v=r.verdict||'clear',icon=v==='clear'?'\u{1F7E2}':v==='review'?'\u{1F7E1}':'\u{1F534}';
+      addMsg(icon+' <strong>'+v.toUpperCase()+'</strong> ('+Math.round((r.score||1)*100)+'%)<br>'+(r.summary||'Looks good.'),'elaine','gatekeeper');
+      loadAll();
+      return;
+    }
+  }catch(e){}
+
+  /* All other messages go to Ollama via /api/chat */
+  chatBusy=true;
+  document.getElementById('sendBtn').disabled=true;
+  addTyping();
+
+  chatHistory.push({role:'user',content:t});
+
+  try{
+    var r=await api('POST','/api/chat',{message:t,history:chatHistory});
+    removeTyping();
+    if(r.error&&!r.reply){
+      addMsg('Sorry, I could not reach the AI backend. '+escHtml(r.error),'elaine','error');
+    }else{
+      var reply=r.reply||'No response from model.';
+      chatHistory.push({role:'assistant',content:reply});
+      /* Basic markdown: **bold**, \n to <br> */
+      var formatted=escHtml(reply).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+      addMsg(formatted,'elaine',r.via||'ollama');
+      speakText(reply);
+    }
+  }catch(e){
+    removeTyping();
+    addMsg("Can't reach the server.<br><small>"+escHtml(e.message)+"</small>",'elaine','error');
+  }
+
+  chatBusy=false;
+  document.getElementById('sendBtn').disabled=false;
+}
+
+/* === Microphone (Speech-to-Text) === */
+/* Dual mode: browser webkitSpeechRecognition (Chrome/Edge) or MediaRecorder + /api/stt (Whisper) */
+var sttMode='none'; /* 'browser', 'whisper', 'none' */
+var recognition=null,isRec=false;
+var mediaRecorder=null,audioChunks=[];
+
+/* Try browser speech recognition first (Chrome/Edge — fastest, no server load) */
+if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
+  sttMode='browser';
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=false;recognition.lang='en-AU';
+  recognition.onresult=function(e){
+    var transcript=e.results[0][0].transcript;
+    chatIn.value=transcript;
+    sendChat();
+  };
+  recognition.onend=function(){isRec=false;document.getElementById('micBtn').classList.remove('recording')};
+  recognition.onerror=function(e){
+    isRec=false;document.getElementById('micBtn').classList.remove('recording');
+    if(e.error==='aborted')return;
+    var msg='Microphone error: '+e.error;
+    if(e.error==='not-allowed')msg='Microphone permission denied. Click the lock icon to allow.';
+    else if(e.error==='no-speech')msg='No speech detected. Try again.';
+    else if(e.error==='network')msg='Speech recognition needs internet (Chrome sends audio to Google).';
+    addMsg(msg,'elaine','local');
+  };
+}
+/* Fallback: MediaRecorder + server-side Whisper (works in PyWebView/Electron) */
+else if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+  sttMode='whisper';
+}
+
+function toggleMic(){
+  if(sttMode==='browser'){
+    if(!recognition){addMsg("Speech recognition unavailable.",'elaine','local');return}
+    if(isRec){recognition.stop()}else{
+      try{recognition.start();isRec=true;document.getElementById('micBtn').classList.add('recording')}
+      catch(e){addMsg('Could not start microphone: '+e.message,'elaine','local')}
+    }
+  }else if(sttMode==='whisper'){
+    if(isRec){
+      /* Stop recording and transcribe */
+      if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+    }else{
+      /* Start recording via MediaRecorder */
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        audioChunks=[];
+        var mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':
+                 MediaRecorder.isTypeSupported('audio/ogg')?'audio/ogg':'';
+        var opts=mime?{mimeType:mime}:{};
+        mediaRecorder=new MediaRecorder(stream,opts);
+        mediaRecorder.ondataavailable=function(e){if(e.data.size>0)audioChunks.push(e.data)};
+        mediaRecorder.onstop=function(){
+          isRec=false;
+          document.getElementById('micBtn').classList.remove('recording');
+          stream.getTracks().forEach(function(t){t.stop()});
+          if(audioChunks.length===0)return;
+          var blob=new Blob(audioChunks,{type:mime||'audio/webm'});
+          transcribeAudio(blob,mime||'audio/webm');
+        };
+        mediaRecorder.start();
+        isRec=true;
+        document.getElementById('micBtn').classList.add('recording');
+        addMsg('Listening... click mic again to stop.','elaine','local');
+      }).catch(function(e){
+        var msg='Microphone access denied.';
+        if(e.name==='NotAllowedError')msg='Microphone permission denied. Allow access and try again.';
+        else if(e.name==='NotFoundError')msg='No microphone found on this device.';
+        addMsg(msg,'elaine','local');
+      });
+    }
+  }else{
+    addMsg("No microphone support. Use Chrome/Edge for browser STT, or PyWebView/Electron for Whisper STT.",'elaine','local');
+  }
+}
+
+async function transcribeAudio(blob,mime){
+  addTyping();
+  try{
+    var ext=mime.indexOf('ogg')>=0?'ogg':mime.indexOf('wav')>=0?'wav':'webm';
+    var fd=new FormData();
+    fd.append('audio',blob,'recording.'+ext);
+    var resp=await fetch('/api/stt',{method:'POST',body:fd});
+    var r=await resp.json();
+    removeTyping();
+    if(r.error){
+      addMsg('Transcription error: '+r.error,'elaine','local');
+    }else if(r.text&&r.text.trim()){
+      chatIn.value=r.text;
+      addMsg('Heard: "'+escHtml(r.text)+'" ('+r.elapsed_s+'s via Whisper)','elaine','stt');
+      sendChat();
+    }else{
+      addMsg('No speech detected in recording.','elaine','local');
+    }
+  }catch(e){
+    removeTyping();
+    addMsg('Could not transcribe audio: '+e.message,'elaine','local');
+  }
+}
+
+/* Update mic button tooltip to show mode */
+(function(){
+  var btn=document.getElementById('micBtn');
+  if(sttMode==='browser')btn.title='Voice input (browser speech recognition)';
+  else if(sttMode==='whisper')btn.title='Voice input (Whisper STT — click to record, click again to stop)';
+  else btn.title='Voice input unavailable';
+})()
+
+/* === Voice Output (Browser TTS default, ElevenLabs if key set) === */
+/* Restore voice preference from localStorage */
+var _savedVoice=(function(){try{return localStorage.getItem('elaine-voice')==='on'}catch(e){return false}})();
+var voiceEnabled=_savedVoice;
+var voiceModeActive=false; /* master voice mode toggle */
+var voiceBackend='browser'; /* 'elevenlabs', 'browser', 'none' — browser is default */
+var currentAudio=null;
+var speechSynth=window.speechSynthesis||null;
+var elaineVoice=null;
+var continuousListen=false; /* auto-restart mic after TTS finishes */
+var ttsUnlocked=false; /* Chrome requires user gesture to unlock speechSynthesis */
+var ttsPending=null; /* queue text to speak after unlock */
+function _saveVoicePref(){try{localStorage.setItem('elaine-voice',voiceEnabled?'on':'off')}catch(e){}}
+
+/* Strip ALL parenthetical stage directions from AI replies */
+function stripStageDirections(text){
+  return text.replace(/\([^)]{2,80}\)/g,'').replace(/\s{2,}/g,' ').trim();
+}
+
+/* Browser TTS setup — prefer Australian English voice */
+function findAusVoice(){
+  if(!speechSynth)return;
+  var voices=speechSynth.getVoices();
+  if(!voices.length)return;
+  /* Priority: en-AU female > en-AU any > en-GB female > en-* female > en-* any */
+  elaineVoice=voices.find(function(v){return v.lang==='en-AU'&&/female/i.test(v.name)})
+    ||voices.find(function(v){return v.lang==='en-AU'})
+    ||voices.find(function(v){return v.lang==='en-GB'&&/female/i.test(v.name)})
+    ||voices.find(function(v){return v.lang.startsWith('en')&&/female/i.test(v.name)})
+    ||voices.find(function(v){return v.lang.startsWith('en')})
+    ||null;
+  if(elaineVoice)logger.info('Voice selected: '+elaineVoice.name+' ('+elaineVoice.lang+')');
+}
+if(speechSynth){findAusVoice();if(speechSynth.onvoiceschanged!==undefined)speechSynth.onvoiceschanged=findAusVoice}
+
+/* Unlock speechSynthesis with a silent utterance (Chrome requires user gesture) */
+function unlockTTS(){
+  if(ttsUnlocked||!speechSynth)return;
+  speechSynth.cancel();
+  var silent=new SpeechSynthesisUtterance('');
+  silent.volume=0;
+  speechSynth.speak(silent);
+  ttsUnlocked=true;
+  logger.info('Browser TTS unlocked');
+}
+
+/* Check voice capability on load */
+async function checkVoiceStatus(){
+  try{
+    var r=await api('GET','/api/tts/status');
+    voiceBackend=r.active||'browser';
+    if(r.setup)logger.info('Voice setup: '+r.setup);
+    logger.info('TTS backend: '+voiceBackend+' (chain: '+(r.fallback_chain||[]).join(' → ')+')');
+  }catch(e){voiceBackend=speechSynth?'browser':'none'}
+  updateVoiceModeUI();
+}
+var logger={info:function(m){console.log('[ELAINE]',m)}};
+checkVoiceStatus();
+
+function speakBrowser(text){
+  if(!speechSynth){logger.info('speechSynthesis not available');return}
+  speechSynth.cancel();
+  var clean=text.replace(/<[^>]+>/g,'').replace(/\*\*/g,'');
+  clean=stripStageDirections(clean);
+  if(!clean.trim())return;
+  if(clean.length>800)clean=clean.substring(0,800)+'... that is the summary.';
+  var utt=new SpeechSynthesisUtterance(clean);
+  utt.lang='en-AU';utt.rate=1.0;utt.pitch=1.0;
+  if(elaineVoice)utt.voice=elaineVoice;
+  utt.onend=function(){if(continuousListen)startListeningAfterReply()};
+  utt.onerror=function(e){logger.info('TTS error: '+e.error)};
+  /* Chrome bug: long utterances get stuck. Split at sentence boundaries if needed. */
+  speechSynth.speak(utt);
+  /* Chrome pauses speechSynth if tab loses focus; resume periodically */
+  var resumeInterval=setInterval(function(){
+    if(!speechSynth.speaking){clearInterval(resumeInterval);return}
+    speechSynth.resume();
+  },5000);
+}
+
+function speakText(text){
+  if(!voiceEnabled)return;
+  var clean=text.replace(/<[^>]+>/g,'').replace(/\*\*/g,'');
+  clean=stripStageDirections(clean);
+  if(!clean.trim())return;
+
+  /* Stop any currently playing audio */
+  if(currentAudio){try{currentAudio.pause();currentAudio=null}catch(e){}}
+  if(speechSynth)speechSynth.cancel();
+
+  /* Always try server TTS first — handles ElevenLabs, Kokoro, and browser-tts hint */
+  if(voiceBackend!=='none'){
+    fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:clean.substring(0,500)})})
+      .then(function(resp){
+        var ct=(resp.headers.get('content-type')||'').toLowerCase();
+        if(ct.indexOf('audio/')>=0){
+          /* Server returned audio (ElevenLabs mp3 or Kokoro wav) */
+          return resp.blob().then(function(blob){
+            var url=URL.createObjectURL(blob);
+            currentAudio=new Audio(url);
+            currentAudio.onended=function(){URL.revokeObjectURL(url);currentAudio=null;if(continuousListen)startListeningAfterReply()};
+            currentAudio.play();
+          });
+        }
+        /* JSON response — browser-tts fallback hint */
+        return resp.json().then(function(data){
+          if(data.fallback==='browser-tts'){
+            speakBrowser(data.text||clean);
+          }
+        });
+      })
+      .catch(function(e){
+        logger.info('Server TTS failed, using browser: '+e.message);
+        speakBrowser(clean);
+      });
+    return;
+  }
+  /* No backend at all — try browser TTS as last resort */
+  speakBrowser(clean);
+}
+
+function startListeningAfterReply(){
+  /* After TTS finishes, auto-activate mic for next voice input */
+  if(!voiceModeActive)return;
+  setTimeout(function(){
+    if(!isRec&&voiceModeActive){
+      toggleMic();
+    }
+  },400);
+}
+
+function updateVoiceModeUI(){
+  var btn=document.getElementById('voiceModeBtn');
+  var bar=document.getElementById('voiceBar');
+  var spkBtn=document.getElementById('speakerBtn');
+  if(voiceModeActive){
+    btn.classList.add('active');
+    bar.classList.add('active');
+    var src=voiceBackend==='elevenlabs'?'ElevenLabs cloned voice':voiceBackend==='kokoro'?'Kokoro-82M neural voice':'browser voice';
+    bar.textContent='Voice Mode ON \u2014 '+src+'. Listening after each reply. Click gold button to disable.';
+  }else{
+    btn.classList.remove('active');
+    bar.classList.remove('active');
+  }
+  /* Update speaker button state */
+  if(spkBtn){
+    if(voiceEnabled){spkBtn.classList.add('active');spkBtn.innerHTML='&#128266;';spkBtn.title='Voice output ON (click to mute)'}
+    else{spkBtn.classList.remove('active');spkBtn.innerHTML='&#128264;';spkBtn.title='Voice output OFF (click to enable)'}
+  }
+}
+
+/* Toggle speaker only (voice output without mic/continuous listen) */
+function toggleSpeaker(){
+  voiceEnabled=!voiceEnabled;
+  _saveVoicePref();
+  if(voiceEnabled){
+    /* Unlock browser TTS on this user gesture (Chrome requirement) */
+    unlockTTS();
+    findAusVoice();
+    var vname=elaineVoice?(elaineVoice.name+' / '+elaineVoice.lang):'default';
+    addMsg('Speaker ON \u2014 '+(voiceBackend==='elevenlabs'?'ElevenLabs':voiceBackend==='kokoro'?'Kokoro-82M':'browser voice ('+vname+')')+'. Every reply will be spoken aloud.','elaine','local');
+  }else{
+    /* Stop any playing audio */
+    if(currentAudio){try{currentAudio.pause();currentAudio=null}catch(e){}}
+    if(speechSynth)speechSynth.cancel();
+    addMsg('Speaker OFF \u2014 text only.','elaine','local');
+  }
+  updateVoiceModeUI();
+}
+
+function toggleVoiceMode(){
+  voiceModeActive=!voiceModeActive;
+  voiceEnabled=voiceModeActive;
+  _saveVoicePref();
+  continuousListen=voiceModeActive;
+
+  if(voiceModeActive){
+    /* Unlock browser TTS on this user gesture (Chrome requirement) */
+    unlockTTS();
+    findAusVoice();
+    /* Activate voice mode (speaker + mic + continuous listen) */
+    var modeLabel=voiceBackend==='elevenlabs'?'ElevenLabs (cloned voice)':voiceBackend==='kokoro'?'Kokoro-82M (neural voice)':voiceBackend==='browser-tts'?'browser voice':'browser voice';
+    addMsg('Voice Mode ON \u2014 using '+modeLabel+'. Speaking replies and listening after each one.','elaine','local');
+    /* Auto-start listening */
+    if(!isRec)toggleMic();
+  }else{
+    /* Deactivate voice mode */
+    continuousListen=false;
+    voiceEnabled=false;
+    _saveVoicePref();
+    if(currentAudio){try{currentAudio.pause();currentAudio=null}catch(e){}}
+    if(speechSynth)speechSynth.cancel();
+    /* Stop mic if recording */
+    if(isRec){
+      if(sttMode==='browser'&&recognition)recognition.stop();
+      else if(sttMode==='whisper'&&mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+    }
+    addMsg('Voice Mode OFF \u2014 back to text.','elaine','local');
+  }
+  updateVoiceModeUI();
+}
+
+/* === Morning Brief === */
+var briefLoading=false;
+
+function renderBriefContent(text){
+  /* Convert markdown-ish formatting: ### headings, **bold**, - bullets, \n */
+  var html=escHtml(text)
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+  return html;
+}
+
+async function loadBriefing(){
+  if(briefLoading)return;
+  briefLoading=true;
+  document.getElementById('briefRefreshBtn').disabled=true;
+  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Loading latest brief...</div>';
+  try{
+    var r=await api('GET','/api/morning-briefing/latest');
+    if(r.error){
+      document.getElementById('briefContent').innerHTML='<span style="color:var(--text-muted)">'+escHtml(r.error)+'</span>';
+      document.getElementById('briefMeta').textContent='No briefing available.';
+      document.getElementById('briefStatus').innerHTML='';
+    }else{
+      document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content.');
+      document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'unknown');
+      var ok=r.ollama_ok;
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+      /* Update dashboard "This Morning" card */
+      var snippet=(r.briefing||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('###')}).slice(0,2).join(' ').substring(0,120);
+      document.getElementById('dBriefOpen').textContent=snippet||"Brief available - click Full Brief to read.";
+      document.getElementById('dBriefSummary').textContent='Generated '+(r.generated_at||'').substring(0,10)+(ok?' via Ollama':' (fallback)');
+    }
+  }catch(e){
+    document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Failed to load: '+escHtml(e.message)+'</span>';
+    document.getElementById('dBriefOpen').textContent='No brief loaded yet.';
+    document.getElementById('dBriefSummary').textContent='Click Full Brief to generate one.';
+  }
+  briefLoading=false;
+  document.getElementById('briefRefreshBtn').disabled=false;
+}
+
+async function generateBriefing(){
+  if(briefLoading)return;
+  briefLoading=true;
+  document.getElementById('briefGenBtn').disabled=true;
+  document.getElementById('briefRefreshBtn').disabled=true;
+  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Generating brief via Ollama (this may take a minute)...</div>';
+  document.getElementById('briefMeta').textContent='Generating...';
+  try{
+    var r=await api('POST','/api/morning-briefing/generate');
+    if(r.error){
+      document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">'+escHtml(r.error)+'</span>';
+    }else{
+      document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content returned.');
+      document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'just now');
+      var ok=r.ollama_ok;
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+    }
+  }catch(e){
+    document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Generation failed: '+escHtml(e.message)+'</span>';
+  }
+  briefLoading=false;
+  document.getElementById('briefGenBtn').disabled=false;
+  document.getElementById('briefRefreshBtn').disabled=false;
+}
+
+/* === Quick Check === */
+async function runCheck(){
+  var c=document.getElementById('chkContent').value;if(!c.trim())return;
+  var b=document.getElementById('chkResult');b.style.display='block';b.className='check-result';b.textContent='Checking...';
+  try{var r=await api('POST','/api/gatekeeper/check',{content:c,title:'Quick check'});var v=r.verdict||'clear';b.className='check-result '+v;b.innerHTML='<strong>'+v.toUpperCase()+'</strong> ('+Math.round((r.score||1)*100)+'%)<br>'+(r.summary||'');loadAll()}catch(e){b.textContent='Error: '+e.message}
+}
+
+/* === Init === */
+loadAll();
+loadToolsHealth();
+loadBriefing();
+updateVoiceModeUI(); /* restore speaker button visual state from localStorage */
+setInterval(loadAll,30000);
+setInterval(loadToolsHealth,60000);
+</script>
+</body>
+</html>
