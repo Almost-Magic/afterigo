@@ -251,6 +251,15 @@ TOOLS = [
         "health": "/api/health",
         "category": "intelligence",
     },
+    {
+        "id": "junk-drawer",
+        "name": "Junk Drawer",
+        "desc": "Quick utilities, scratch pad, miscellaneous tools",
+        "port": 5005,
+        "url": f"http://{LAN_IP}:5005",
+        "health": "/",
+        "category": "core",
+    },
 ]
 
 # ── System Prompt for Ollama ────────────────────────────────────
