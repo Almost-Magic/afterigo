@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, LogOut, RefreshCw } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useVaultStore } from '../../stores/vaultStore'
+import type { VaultHealth } from '../../types/vault'
 
 interface HeaderProps {
   title?: string
@@ -12,13 +13,18 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
   const navigate = useNavigate()
   const { logout, isAuthenticated } = useAuthStore()
   const { getVaultHealth } = useVaultStore()
+  const [health, setHealth] = useState<VaultHealth | null>(null)
+
+  useEffect(() => {
+    getVaultHealth().then(setHealth)
+  }, [getVaultHealth])
 
   const handleLock = () => {
     logout()
     navigate('/')
   }
 
-  const health = getVaultHealth()
+  const score = health?.overallScore ?? 0
 
   return (
     <header className="h-16 bg-white dark:bg-warmGray-800 border-b border-warmGray-200 dark:border-warmGray-700 flex items-center justify-between px-6">
@@ -32,18 +38,20 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
 
       <div className="flex items-center gap-4">
         {/* Health indicator */}
-        <div className="flex items-center gap-2 text-sm text-warmGray-500">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              health.overallScore >= 80
-                ? 'bg-sage'
-                : health.overallScore >= 50
-                ? 'bg-amber-500'
-                : 'bg-red-500'
-            }`}
-          />
-          <span>Vault Health: {health.overallScore}%</span>
-        </div>
+        {health && (
+          <div className="flex items-center gap-2 text-sm text-warmGray-500">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                score >= 80
+                  ? 'bg-sage'
+                  : score >= 50
+                  ? 'bg-amber-500'
+                  : 'bg-red-500'
+              }`}
+            />
+            <span>Vault Health: {score}%</span>
+          </div>
+        )}
 
         {/* Lock button */}
         {isAuthenticated && (

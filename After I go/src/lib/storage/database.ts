@@ -28,10 +28,7 @@ db.version(1).stores({
 // Account CRUD operations
 export const accountOps = {
   async add(account: Omit<VaultAccount, 'id'>): Promise<number> {
-    return db.accounts.add({
-      ...account,
-      id: undefined
-    }) as Promise<number>
+    return db.accounts.add(account as VaultAccount) as Promise<number>
   },
 
   async get(id: number): Promise<VaultAccount | undefined> {
@@ -73,10 +70,7 @@ export const accountOps = {
 // Message CRUD operations
 export const messageOps = {
   async add(message: Omit<Message, 'id'>): Promise<number> {
-    return db.messages.add({
-      ...message,
-      id: undefined
-    }) as Promise<number>
+    return db.messages.add(message as Message) as Promise<number>
   },
 
   async get(id: number): Promise<Message | undefined> {
@@ -114,10 +108,7 @@ export const messageOps = {
 // Share CRUD operations
 export const shareOps = {
   async add(share: Omit<Share, 'id'>): Promise<number> {
-    return db.shares.add({
-      ...share,
-      id: undefined
-    }) as Promise<number>
+    return db.shares.add(share as Share) as Promise<number>
   },
 
   async get(id: number): Promise<Share | undefined> {
@@ -155,10 +146,7 @@ export const shareOps = {
 // Unlock request operations
 export const unlockRequestOps = {
   async add(request: Omit<UnlockRequest, 'id'>): Promise<number> {
-    return db.unlockRequests.add({
-      ...request,
-      id: undefined
-    }) as Promise<number>
+    return db.unlockRequests.add(request as UnlockRequest) as Promise<number>
   },
 
   async get(id: number): Promise<UnlockRequest | undefined> {
@@ -197,8 +185,8 @@ export const settingsOps = {
     return result?.value as T | undefined
   },
 
-  async set(key: string, value: unknown): Promise<string> {
-    return db.settings.put({ key, value }) as Promise<string>
+  async set(key: string, value: unknown): Promise<void> {
+    await db.settings.put({ key, value })
   },
 
   async delete(key: string): Promise<void> {

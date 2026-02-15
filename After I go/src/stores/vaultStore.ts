@@ -1,8 +1,9 @@
 import { create } from 'zustand'
-import { encryptObject, decryptObject, deriveKey, generateSalt, type EncryptedData } from '../lib/crypto/encryption'
+import { encryptObject, decryptObject, deriveKey, generateSalt } from '../lib/crypto/encryption'
 import { accountOps, settingsOps } from '../lib/storage/database'
 import { useAuthStore } from './authStore'
 import type { VaultAccount, VaultHealth, AccountCategory } from '../types/vault'
+import type { EncryptedData } from '../types/security'
 
 interface VaultState {
   accounts: VaultAccount[]

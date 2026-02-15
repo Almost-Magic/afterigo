@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { deriveKey, createPasswordCheck, verifyPassword, generateSalt, type EncryptedData } from '../lib/crypto/encryption'
+import { deriveKey, createPasswordCheck, verifyPassword, generateSalt } from '../lib/crypto/encryption'
 import { settingsOps } from '../lib/storage/database'
-import type { EncryptedData as EncryptedDataType } from '../types/security'
+import type { EncryptedData } from '../types/security'
 
 interface AuthState {
   isAuthenticated: boolean
   masterKey: CryptoKey | null
   salt: Uint8Array | null
-  passwordCheck: EncryptedDataType | null
+  passwordCheck: EncryptedData | null
   isFirstTime: boolean
   loading: boolean
   error: string | null
@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           const salt = new Uint8Array(saltArr)
-          const passwordCheck: EncryptedDataType = JSON.parse(passwordCheckStr)
+          const passwordCheck: EncryptedData = JSON.parse(passwordCheckStr)
 
           // Verify password
           const isValid = await verifyPassword(password, salt, passwordCheck)
