@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Workshop Desktop — Almost Magic Tech Lab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+    <div class="app-container">
+        <div class="title-bar">
+            <div class="title-bar-drag">
+                <span class="app-title">The Workshop</span>
+            </div>
+            <div class="title-bar-controls">
+                <button id="theme-toggle" class="title-btn" title="Toggle Theme">Dark</button>
+                <button class="title-btn minimise" title="Minimise">−</button>
+                <button class="title-btn maximise" title="Maximise">□</button>
+                <button class="title-btn close" title="Close">×</button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">The Workshop</span>
+                </div>
+                <div id="services-container"></div>
+                <div class="sidebar-footer">
+                    <button id="theme-btn" class="theme-toggle-btn">Light Theme</button>
+                </div>
+            </div>
+
+            <div class="content-wrapper">
+                <div class="tab-bar" id="tab-bar"></div>
+                <div class="content-area" id="content-area">
+                    <div class="welcome-panel" id="welcome-panel">
+                        <div class="welcome-content">
+                            <h1 id="greeting">Good morning, Mani</h1>
+                            <p class="welcome-subtitle">Your Workshop is ready</p>
+                            <div class="stats-row">
+                                <div class="stat-item">
+                                    <span class="stat-value" id="stat-apps">0/0</span>
+                                    <span class="stat-label">apps</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="stat-infra">0/0</span>
+                                    <span class="stat-label">infra</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <span id="status-apps">● 0/0 apps</span>
+                <span class="status-sep">|</span>
+                <span id="status-infra">● 0/0 infra</span>
+            </div>
+            <div class="status-center">
+                <span id="status-message">Loading...</span>
+            </div>
+            <div class="status-right">
+                <span id="version">v1.0.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
