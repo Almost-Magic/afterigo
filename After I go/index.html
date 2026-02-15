@@ -10,10 +10,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="manifest" href="/afterigo/manifest.json" />
 </head>
 <body class="bg-warmGray-50 text-warmGray-900 dark:bg-warmGray-900 dark:text-warmGray-100">
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+  // KILL OLD SERVICE WORKERS - they cache the broken build
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for (var i = 0; i < registrations.length; i++) {
+        registrations[i].unregister();
+      }
+    });
+    // Also clear all caches
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var i = 0; i < names.length; i++) {
+          caches.delete(names[i]);
+        }
+      });
+    }
+  }
+  </script>
 </body>
 </html>
