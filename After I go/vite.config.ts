@@ -33,7 +33,7 @@ export default defineConfig({
     //   }
     // })
   ],
-  base: '/afterigo/',
+  base: './',
   build: {
     outDir: 'dist',
     sourcemap: false,

@@ -12,7 +12,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body class="bg-warmGray-50 text-warmGray-900 dark:bg-warmGray-900 dark:text-warmGray-100">
-  <div id="root"></div>
+  <div id="root">
+    <div style="color:white;background:#1a1a2e;padding:60px;text-align:center;min-height:100vh">
+      <h1 style="font-size:3rem">After I Go</h1>
+      <p>If you can see this, React failed to load.</p>
+      <p id="js-status">JavaScript has not run yet.</p>
+    </div>
+  </div>
+  <script>document.getElementById('js-status').textContent = 'JavaScript is running. React is loading...';</script>
   <script type="module" src="/src/main.tsx"></script>
   <script>
   // KILL OLD SERVICE WORKERS - they cache the broken build
