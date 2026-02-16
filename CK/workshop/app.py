@@ -1,5 +1,5 @@
 ﻿"""
-The Workshop â€” Almost Magic Tech Lab Mission Control
+The Workshop — Almost Magic Tech Lab Mission Control
 Port: 5003
 """
 
@@ -8,10 +8,11 @@ import glob
 import json
 import time
 import logging
+import socket
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, after_this_request
 import httpx
 
 # ============================================================
@@ -20,6 +21,19 @@ import httpx
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'workshop-amtl-2026')
+
+# CORS headers for cross-origin requests from Electron apps
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
+# Handle OPTIONS preflight requests
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,7 +58,6 @@ ELECTRON_MAIN = os.path.join(DESKTOP_APPS_DIR, 'shared', 'main.js')
 
 # ============================================================
 # Desktop App Registry — maps service IDs to Electron app IDs
-# and their corresponding backend service(s)
 # ============================================================
 
 DESKTOP_APPS = {
@@ -62,14 +75,40 @@ DESKTOP_APPS = {
     'supervisor':       {'electron_id': 'supervisor',    'backend_service': 'supervisor',    'name': 'Supervisor'},
 }
 
-# Backend-only services (used by "Start Backends Only")
-BACKEND_SERVICES = [
-    'supervisor', 'elaine', 'costanza', 'learning', 'writer',
-    'authorstudio', 'peterman', 'junkdrawer', 'genie', 'ripple', 'touchstone',
-]
+# ============================================================
+# Desktop exe cache (for find_desktop_exe)
+# ============================================================
+
+_desktop_exe_cache = {}
+_desktop_cache_valid = False
+
+def _invalidate_desktop_cache():
+    """Invalidate the desktop exe cache."""
+    global _desktop_cache_valid
+    _desktop_cache_valid = False
+    _desktop_exe_cache.clear()
+
+def _get_desktop_exe_cached(electron_id):
+    """Get desktop exe path with caching."""
+    global _desktop_cache_valid
+    if _desktop_cache_valid and electron_id in _desktop_exe_cache:
+        return _desktop_exe_cache[electron_id]
+    result = find_desktop_exe(electron_id)
+    if _desktop_cache_valid:
+        _desktop_exe_cache[electron_id] = result
+    return result
+
+def _refresh_desktop_cache():
+    """Refresh the desktop exe cache."""
+    global _desktop_cache_valid
+    _desktop_exe_cache.clear()
+    for app_id in DESKTOP_APPS:
+        electron_id = DESKTOP_APPS[app_id]['electron_id']
+        _desktop_exe_cache[electron_id] = find_desktop_exe(electron_id)
+    _desktop_cache_valid = True
 
 # ============================================================
-# Service Registry â€” Single source of truth
+# Service Registry — Single source of truth
 # ============================================================
 
 LAN = '192.168.4.55'
@@ -160,9 +199,57 @@ SERVICES = {
     'shodan':             {'name': 'Shodan CLI',          'port': None,  'url': None,                   'type': 'infra', 'path': None, 'cmd': None},
 }
 
+# ============================================================
+# Auto-derive BACKEND_SERVICES from SERVICES dict
+# Filters for type='ck' services that have a 'cmd' defined
+# ============================================================
+
+def _derive_backend_services():
+    """Auto-derive backend services from SERVICES dict."""
+    derived = []
+    for sid, svc in SERVICES.items():
+        # Include CK type services with cmd defined, and supervisor
+        if svc.get('type') == 'ck' and svc.get('cmd'):
+            derived.append(sid)
+        elif sid == 'supervisor':
+            derived.append(sid)
+    return derived
+
+BACKEND_SERVICES = _derive_backend_services()
+
 # Track launched processes
 launched_processes = {}
 
+# ============================================================
+# PID Cleanup Utilities
+# ============================================================
+
+def _is_process_alive(pid):
+    """Check if a process with given PID is still running."""
+    try:
+        if os.name == 'nt':
+            # Windows: use tasklist to check
+            result = subprocess.run(
+                ['tasklist', '/FI', f'PID eq {pid}'],
+                capture_output=True, text=True, timeout=3
+            )
+            return str(pid) in result.stdout
+        else:
+            # Unix: signal 0 check
+            os.kill(pid, 0)
+            return True
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+def _cleanup_dead_pids():
+    """Remove dead PIDs from launched_processes."""
+    dead = []
+    for sid, pid in launched_processes.items():
+        if not _is_process_alive(pid):
+            dead.append(sid)
+    for sid in dead:
+        del launched_processes[sid]
+    return dead
 
 # ============================================================
 # Health Check Logic
@@ -178,7 +265,6 @@ def check_service(service_id, service):
         return False  # CLI-only tools (no port)
     if service.get('url') is None:
         # TCP-only services (PostgreSQL, Redis)
-        import socket
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
@@ -202,6 +288,29 @@ def check_service(service_id, service):
 
 
 # ============================================================
+# AI Status Endpoint
+# ============================================================
+
+def check_ai_backends():
+    """Check AI backend availability (Ollama, etc.)."""
+    ollama_status = 'unavailable'
+    try:
+        resp = httpx.get('http://localhost:11434/api/tags', timeout=2.0)
+        if resp.status_code == 200:
+            ollama_status = 'available'
+    except Exception:
+        ollama_status = 'unavailable'
+    
+    return {
+        'ollama': {
+            'status': ollama_status,
+            'port': 11434,
+            'url': 'http://localhost:11434'
+        }
+    }
+
+
+# ============================================================
 # Routes
 # ============================================================
 
@@ -222,6 +331,15 @@ def health():
     })
 
 
+@app.route('/api/ai/status')
+def ai_status():
+    """AI backend status (Ollama, etc.)."""
+    return jsonify({
+        'timestamp': datetime.utcnow().isoformat(),
+        'backends': check_ai_backends()
+    })
+
+
 @app.route('/api/services')
 def list_services():
     """List all registered services."""
@@ -234,14 +352,24 @@ def services_health():
     results = {}
     live_count = 0
     total = len(SERVICES)
+    errors = []
 
     def _check(sid_svc):
         sid, svc = sid_svc
-        return sid, svc, check_service(sid, svc)
+        try:
+            return sid, svc, check_service(sid, svc)
+        except Exception as e:
+            return sid, svc, False, str(e)
 
     with ThreadPoolExecutor(max_workers=12) as pool:
         futures = pool.map(_check, SERVICES.items())
-        for sid, svc, is_up in futures:
+        for result in futures:
+            if len(result) == 4:
+                sid, svc, is_up, error = result
+                if error:
+                    errors.append({sid: error})
+            else:
+                sid, svc, is_up = result
             results[sid] = {
                 'name': svc['name'],
                 'port': svc['port'],
@@ -251,13 +379,16 @@ def services_health():
             if is_up:
                 live_count += 1
 
-    return jsonify({
+    response = {
         'timestamp': datetime.utcnow().isoformat(),
         'summary': f'{live_count}/{total} services live',
         'live': live_count,
         'total': total,
         'services': results
-    })
+    }
+    if errors:
+        response['errors'] = errors
+    return jsonify(response)
 
 
 @app.route('/api/services/health/<service_id>')
@@ -277,11 +408,21 @@ def service_health(service_id):
     })
 
 
+@app.route('/api/services/pids')
+def list_pids():
+    """List launched processes and clean up dead PIDs."""
+    dead = _cleanup_dead_pids()
+    return jsonify({
+        'timestamp': datetime.utcnow().isoformat(),
+        'processes': launched_processes.copy(),
+        'cleaned': dead,
+        'count': len(launched_processes)
+    })
+
+
 @app.route('/api/services/launch/<service_id>', methods=['POST'])
 def launch_service(service_id):
     """Launch a service if it's not already running."""
-    import subprocess
-
     if service_id not in SERVICES:
         return jsonify({'error': f'Unknown service: {service_id}'}), 404
 
@@ -297,102 +438,48 @@ def launch_service(service_id):
             'message': f"{svc['name']} is already running on port {svc['port']}"
         })
 
-    # Docker service?
-    docker_name = svc.get('docker')
-    if docker_name:
-        try:
-            subprocess.run(
-                ['docker', 'start', docker_name],
-                capture_output=True, text=True, timeout=15
-            )
-            # Wait a moment for startup
-            time.sleep(3)
-            is_up = check_service(service_id, svc)
-            return jsonify({
-                'id': service_id,
-                'name': svc['name'],
-                'status': 'launched' if is_up else 'starting',
-                'url': svc.get('url'),
-                'message': f"Docker container '{docker_name}' started"
-            })
-        except Exception as e:
-            return jsonify({
-                'id': service_id,
-                'name': svc['name'],
-                'status': 'error',
-                'message': f"Failed to start Docker container: {str(e)}"
-            }), 500
-
-    # Python/app service?
-    app_path = svc.get('path')
-    app_cmd = svc.get('cmd')
-
-    if not app_path or not app_cmd:
+    # Use internal launcher and format response
+    result = launch_service_internal(service_id)
+    
+    # Format response based on result
+    if result['status'] == 'already_running':
+        return jsonify({
+            'id': service_id,
+            'name': svc['name'],
+            'status': 'already_running',
+            'url': svc.get('url'),
+            'message': f"{svc['name']} is already running on port {svc['port']}"
+        })
+    elif result['status'] == 'not_available':
         return jsonify({
             'id': service_id,
             'name': svc['name'],
             'status': 'not_available',
-            'message': f"{svc['name']} is not yet built or has no launch path configured"
+            'message': result.get('message', f"{svc['name']} is not yet built or has no launch path configured")
         }), 404
-
-    if not os.path.isdir(app_path):
+    elif result['status'] == 'not_found':
         return jsonify({
             'id': service_id,
             'name': svc['name'],
             'status': 'not_found',
-            'message': f"App directory not found: {app_path}"
+            'message': result.get('message', f"App directory not found")
         }), 404
-
-    try:
-        # Build environment
-        env = os.environ.copy()
-        extra_env = svc.get('env', {})
-        env.update(extra_env)
-
-        # Launch as detached subprocess
-        process = subprocess.Popen(
-            app_cmd,
-            cwd=app_path,
-            shell=True,
-            env=env,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
-        )
-
-        launched_processes[service_id] = process.pid
-        logger.info(f"Launched {svc['name']} (PID: {process.pid}) from {app_path}")
-
-        # Wait for it to come up
-        for i in range(10):
-            time.sleep(1.5)
-            if check_service(service_id, svc):
-                return jsonify({
-                    'id': service_id,
-                    'name': svc['name'],
-                    'status': 'launched',
-                    'pid': process.pid,
-                    'url': svc.get('url'),
-                    'message': f"{svc['name']} started on port {svc['port']}"
-                })
-
-        return jsonify({
-            'id': service_id,
-            'name': svc['name'],
-            'status': 'starting',
-            'pid': process.pid,
-            'url': svc.get('url'),
-            'message': f"{svc['name']} is starting (PID: {process.pid}), may take a moment..."
-        })
-
-    except Exception as e:
-        logger.error(f"Failed to launch {svc['name']}: {e}")
+    elif result['status'] == 'error':
         return jsonify({
             'id': service_id,
             'name': svc['name'],
             'status': 'error',
-            'message': str(e)
+            'message': result.get('message', 'Unknown error')
         }), 500
+    else:
+        return jsonify({
+            'id': service_id,
+            'name': svc['name'],
+            'status': result['status'],
+            'pid': result.get('pid'),
+            'url': svc.get('url'),
+            'message': result.get('message', f"{svc['name']} is {result['status']}")
+        })
 
 
 @app.route('/api/launch/<name>', methods=['POST'])
@@ -442,10 +529,9 @@ def launch_all():
         if not check_service(sid, svc):
             has_launcher = svc.get('docker') or (svc.get('path') and svc.get('cmd'))
             if has_launcher:
-                # Call our own launch endpoint logic
                 try:
-                    resp = launch_service_internal(sid)
-                    results[sid] = resp
+                    result = launch_service_internal(sid)
+                    results[sid] = result
                 except Exception as e:
                     results[sid] = {'status': 'error', 'message': str(e)}
             else:
@@ -461,30 +547,68 @@ def launch_all():
 
 def launch_service_internal(service_id):
     """Internal launch logic (shared by launch and launch-all)."""
-    import subprocess
     svc = SERVICES[service_id]
+
+    # Already running?
+    if check_service(service_id, svc):
+        return {'status': 'already_running'}
 
     docker_name = svc.get('docker')
     if docker_name:
-        subprocess.run(['docker', 'start', docker_name], capture_output=True, timeout=15)
-        time.sleep(2)
-        return {'status': 'launched' if check_service(service_id, svc) else 'starting'}
+        try:
+            subprocess.run(
+                ['docker', 'start', docker_name],
+                capture_output=True, text=True, timeout=15
+            )
+            # Wait up to 8 seconds for startup
+            for _ in range(8):
+                time.sleep(1)
+                if check_service(service_id, svc):
+                    return {'status': 'launched', 'message': f"Docker container '{docker_name}' started"}
+            return {'status': 'starting', 'message': f"Docker container '{docker_name}' starting"}
+        except Exception as e:
+            return {'status': 'error', 'message': f"Failed to start Docker container: {str(e)}"}
 
     app_path = svc.get('path')
     app_cmd = svc.get('cmd')
-    if app_path and app_cmd and os.path.isdir(app_path):
+    
+    if not app_path or not app_cmd:
+        return {'status': 'not_available', 'message': f"{svc['name']} is not yet built or has no launch path configured"}
+
+    if not os.path.isdir(app_path):
+        return {'status': 'not_found', 'message': f"App directory not found: {app_path}"}
+
+    try:
         env = os.environ.copy()
         env.update(svc.get('env', {}))
+        
         process = subprocess.Popen(
             app_cmd, cwd=app_path, shell=True, env=env,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
         )
+        
         launched_processes[service_id] = process.pid
-        time.sleep(3)
-        return {'status': 'launched', 'pid': process.pid}
-
-    return {'status': 'no_launcher'}
+        logger.info(f"Launched {svc['name']} (PID: {process.pid}) from {app_path}")
+        
+        # Wait up to 8 seconds for startup
+        for _ in range(8):
+            time.sleep(1)
+            if check_service(service_id, svc):
+                return {
+                    'status': 'launched',
+                    'pid': process.pid,
+                    'message': f"{svc['name']} started on port {svc['port']}"
+                }
+        
+        return {
+            'status': 'starting',
+            'pid': process.pid,
+            'message': f"{svc['name']} is starting (PID: {process.pid}), may take a moment..."
+        }
+    except Exception as e:
+        logger.error(f"Failed to launch {svc['name']}: {e}")
+        return {'status': 'error', 'message': str(e)}
 
 
 # ============================================================
@@ -530,8 +654,8 @@ def start_backend_via_services(service_key):
 
 def launch_electron_app(electron_id):
     """Launch an Electron desktop app (.exe or dev mode)."""
-    # Try built .exe first
-    exe_path = find_desktop_exe(electron_id)
+    # Try built .exe first (with caching)
+    exe_path = _get_desktop_exe_cached(electron_id)
     if exe_path:
         logger.info(f"Launching desktop .exe: {exe_path}")
         subprocess.Popen(
@@ -554,6 +678,17 @@ def launch_electron_app(electron_id):
         return {'method': 'electron-dev', 'config': config_path}
 
     return None
+
+
+@app.route('/api/desktop/refresh', methods=['POST'])
+def refresh_desktop_cache():
+    """Refresh the desktop exe cache."""
+    _refresh_desktop_cache()
+    return jsonify({
+        'status': 'success',
+        'message': 'Desktop cache refreshed',
+        'count': len(_desktop_exe_cache)
+    })
 
 
 @app.route('/api/desktop/launch/<app_id>', methods=['POST'])
@@ -587,9 +722,9 @@ def launch_desktop(app_id):
             backend_status = 'already_running'
         else:
             start_backend_via_services(backend_key)
-            # Wait for backend to come up
-            for _ in range(10):
-                time.sleep(1.5)
+            # Wait up to 8 seconds for backend
+            for _ in range(8):
+                time.sleep(1)
                 if check_service(sid, svc):
                     break
             backend_status = 'launched' if check_service(sid, svc) else 'starting'
@@ -653,8 +788,8 @@ def start_backends_only():
     logger.info("Starting all backends only (no desktop windows)...")
     success = start_backend_via_services('all')
 
-    # Wait and check health
-    time.sleep(5)
+    # Wait and check health (8 seconds max)
+    time.sleep(8)
     running = 0
     total = len(BACKEND_SERVICES)
     statuses = {}
@@ -676,13 +811,18 @@ def start_backends_only():
 
 @app.route('/api/desktop/apps')
 def list_desktop_apps():
-    """List available desktop apps and their .exe status."""
+    """List available desktop apps and their .exe status (uses cache)."""
+    # Ensure cache is populated
+    if not _desktop_cache_valid:
+        _refresh_desktop_cache()
+    
     result = {}
     for app_id, desktop in DESKTOP_APPS.items():
-        exe_path = find_desktop_exe(desktop['electron_id'])
+        electron_id = desktop['electron_id']
+        exe_path = _get_desktop_exe_cached(electron_id)
         result[app_id] = {
             'name': desktop['name'],
-            'electron_id': desktop['electron_id'],
+            'electron_id': electron_id,
             'has_exe': exe_path is not None,
             'exe_path': exe_path,
         }
@@ -704,6 +844,11 @@ def serve_favicon(filename):
 # ============================================================
 
 if __name__ == '__main__':
+    # Log warning if using default SECRET_KEY
+    if app.config['SECRET_KEY'] == 'workshop-amtl-2026':
+        logger.warning("Using default SECRET_KEY - consider setting Workshop_SECRET_KEY environment variable for production")
+    
     logger.info(f'The Workshop v{VERSION} starting on port {PORT}')
     logger.info(f"  http://localhost:{PORT}  |  Services registered: {len(SERVICES)}")
+    logger.info(f"  Backend services (auto-derived): {len(BACKEND_SERVICES)}")
     app.run(host='0.0.0.0', port=PORT, debug=False)
