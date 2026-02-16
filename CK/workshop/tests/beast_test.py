@@ -86,7 +86,6 @@ class TestServiceRegistry:
             'redis': 6379,
             'searxng': 8888,
             'n8n': 5678,
-            'ollama': 11434,
         }
         for sid, expected_port in known.items():
             assert sid in SERVICES, f"Service '{sid}' missing from registry"
@@ -206,6 +205,6 @@ class TestSummary:
     def test_infra_services_exist(self):
         """Infrastructure services must include core infra."""
         infra_ids = [sid for sid, svc in SERVICES.items() if svc['type'] == 'infra']
-        required = ['postgres', 'redis', 'ollama', 'searxng', 'n8n']
+        required = ['postgres', 'redis', 'searxng', 'n8n']
         for rid in required:
             assert rid in infra_ids, f"Core infra service '{rid}' missing"

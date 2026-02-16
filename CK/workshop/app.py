@@ -120,7 +120,7 @@ SERVICES = {
     'learning-assistant': {'name': 'Learning Assistant',  'port': 5002,  'url': f'http://{LAN}:5002',  'type': 'ck',    'path': os.path.join(CK_BASE, 'learning-assistant'),'cmd': 'python app.py', 'health': '/api/health'},
     'writer':             {'name': 'CK Writer',           'port': 5004,  'url': f'http://{LAN}:5004',  'type': 'ck',    'path': os.path.join(CK_BASE, 'CK-Writer'),         'cmd': 'node server.js', 'health': '/'},
     'author-studio':      {'name': 'Author Studio',       'port': 5007,  'url': f'http://{LAN}:5007',  'type': 'ck',    'path': os.path.join(CK_BASE, 'Author Studio'),     'cmd': 'python main_flask.py'},
-    'peterman':           {'name': 'Peterman',            'port': 5008,  'url': f'http://{LAN}:5008',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Peterman SEO'),  'cmd': 'python app.py', 'health': '/api/health', 'env': {'FLASK_DEBUG': '0', 'OLLAMA_TIMEOUT': '600'}},
+    'peterman':           {'name': 'Peterman',            'port': 5008,  'url': f'http://{LAN}:5008',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Peterman SEO'),  'cmd': 'python app.py', 'health': '/api/health', 'env': {'FLASK_DEBUG': '0'}},
     'dhamma':             {'name': 'Dhamma Mirror',       'port': 8080,  'url': f'http://{LAN}:8080',  'type': 'ck',    'path': os.path.join(CK_BASE, 'dhamma-mirror'),     'cmd': 'npm run dev', 'health': '/'},
     'processlens':        {'name': 'ProcessLens',         'port': 5016,  'url': f'http://{LAN}:5016',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'Process Lens'),  'cmd': 'python -m uvicorn processlens.main:app --host 0.0.0.0 --port 5016', 'health': '/docs'},
     'the-ledger':         {'name': 'The Ledger',          'port': 5020,  'url': f'http://{LAN}:5020',  'type': 'ck',    'path': os.path.join(SOURCE_BASE, 'The Ledger'),     'cmd': 'python -m uvicorn app.main:app --host 0.0.0.0 --port 5020', 'health': '/docs'},
@@ -140,7 +140,6 @@ SERVICES = {
 
     # Infrastructure -- core services
     'supervisor':         {'name': 'The Supervisor',      'port': 9000,  'url': f'http://{LAN}:9000',  'type': 'infra', 'health': '/api/health', 'path': os.path.join(SOURCE_BASE, 'Supervisor'), 'cmd': 'python supervisor.py'},
-    'ollama':             {'name': 'Ollama',              'port': 11434, 'url': f'http://{LAN}:11434', 'type': 'infra', 'health': '/api/tags', 'docker': None, 'cmd': 'ollama serve'},
     'postgres':           {'name': 'PostgreSQL',          'port': 5433,  'url': None,                   'type': 'infra', 'docker': 'pgvector'},
     'redis':              {'name': 'Redis',               'port': 6379,  'url': None,                   'type': 'infra', 'docker': 'redis'},
     'n8n':                {'name': 'n8n',                 'port': 5678,  'url': f'http://{LAN}:5678',  'type': 'infra', 'docker': 'n8n'},
@@ -292,20 +291,13 @@ def check_service(service_id, service):
 # ============================================================
 
 def check_ai_backends():
-    """Check AI backend availability (Ollama, etc.)."""
-    ollama_status = 'unavailable'
-    try:
-        resp = httpx.get('http://localhost:11434/api/tags', timeout=2.0)
-        if resp.status_code == 200:
-            ollama_status = 'available'
-    except Exception:
-        ollama_status = 'unavailable'
-    
+    """Check AI backend availability (Claude CLI)."""
+    import shutil
+    claude_status = 'available' if shutil.which('claude') else 'unavailable'
     return {
-        'ollama': {
-            'status': ollama_status,
-            'port': 11434,
-            'url': 'http://localhost:11434'
+        'claude_cli': {
+            'status': claude_status,
+            'engine': 'Claude CLI (Max subscription)',
         }
     }
 
@@ -333,7 +325,7 @@ def health():
 
 @app.route('/api/ai/status')
 def ai_status():
-    """AI backend status (Ollama, etc.)."""
+    """AI backend status (Claude CLI)."""
     return jsonify({
         'timestamp': datetime.utcnow().isoformat(),
         'backends': check_ai_backends()

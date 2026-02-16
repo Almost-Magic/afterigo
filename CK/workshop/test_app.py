@@ -73,7 +73,7 @@ class TestAIStatusEndpoint:
         response = client.get('/api/ai/status')
         data = json.loads(response.data)
         assert 'backends' in data
-        assert 'ollama' in data['backends']
+        assert 'claude_cli' in data['backends']
         assert 'timestamp' in data
 
 
