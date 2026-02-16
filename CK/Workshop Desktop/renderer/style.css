@@ -199,11 +199,22 @@ body {
 
 .service-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     padding: 8px 16px 8px 36px;
     cursor: pointer;
     transition: background 0.15s ease;
     user-select: none;
+}
+
+.service-item-top {
+    display: flex;
+    align-items: center;
+}
+
+.service-item-bottom {
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
 }
 
 .service-item:hover {
@@ -232,6 +243,13 @@ body {
 .status-running { color: var(--success); }
 .status-stopped { color: var(--danger); }
 .status-not-installed { color: var(--text-muted); opacity: 0.5; }
+
+.service-port {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'Consolas', 'Monaco', monospace;
+    margin-left: 28px;
+}
 
 .content-wrapper {
     flex: 1;
@@ -430,4 +448,111 @@ webview {
 
 .service-item, .tab, .quick-btn {
     animation: fadeIn 0.2s ease;
+}
+
+/* Loading overlay for slow apps */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Not running panel */
+.not-running-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px;
+    text-align: center;
+    background: var(--bg);
+}
+
+.not-running-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.not-running-panel h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.not-running-panel .status-text {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+.not-running-panel .hint-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.not-running-panel .port-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Consolas', 'Monaco', monospace;
+    margin-top: 24px;
+}
+
+.not-running-panel .start-btn {
+    padding: 12px 32px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 16px;
+}
+
+.not-running-panel .start-btn:hover {
+    background: var(--accent);
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.not-running-panel .start-btn:active {
+    transform: translateY(0);
+}
+
+.not-running-panel .start-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }

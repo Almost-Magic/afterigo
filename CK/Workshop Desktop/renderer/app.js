@@ -13,9 +13,22 @@
     const ICONS = {
         'ELAINE': '🧠', 'Ripple CRM': '💼', 'Identity Atlas': '🆔', 'The Workshop API': '⚙️',
         'CK Writer': '✍️', 'Junk Drawer': '🎁', 'Opp Hunter': '🎯', 'Peterman': '📋',
-        'Sophia': '🔮', 'Spark': '✨', 'Learning Assistant': '📚', 'Digital Sentinel': '🛡️',
-        'CK Swiss Army Knife': '🔧', 'AMTL TTS': '🔊', 'ProcessLens': '🔍', 'Genie': '💰'
+        'Spark': '✨', 'Learning Assistant': '📚', 'Digital Sentinel': '🛡️',
+        'CK Swiss Army Knife': '🔧', 'AMTL TTS': '🔊', 'ProcessLens': '🔍', 'Genie': '💰',
+        'After I Go': '🏛️'
     };
+
+    const LOADING_PORTS = [5000, 5005, 5006, 8000, 5173]; // Apps that take time to load
+    
+    // Check if a service is running by checking its port
+    async function checkServiceRunning(port) {
+        return new Promise((resolve) => {
+            const http = require('http');
+            const req = http.get(`http://127.0.0.1:${port}`, (res) => { resolve(true); });
+            req.on('error', () => resolve(false));
+            req.setTimeout(1000, () => { req.destroy(); resolve(false); });
+        });
+    }
     
     async function init() {
         loadSettings();
@@ -48,27 +61,32 @@
             const isExpanded = expandedGroups.has(groupName);
             const running = groupSvcs.filter(s => s.running).length;
             
-            const el = document.createElement('div');
-            el.className = 'group';
-            el.innerHTML = `
-                <div class="group-header ${isExpanded ? 'expanded' : ''}" data-group="${groupName}">
-                    <span class="group-arrow">${isExpanded ? '▼' : '▶'}</span>
-                    <span class="group-title">${groupName}</span>
-                    <span class="group-count">${running}/${groupSvcs.length}</span>
-                </div>
-                <div class="group-content ${isExpanded ? '' : 'collapsed'}">
-                    ${groupSvcs.map(svc => `
-                        <div class="service-item ${activeTab === `http://localhost:${svc.port}` ? 'active' : ''}" 
-                             data-name="${svc.name}" data-url="http://localhost:${svc.port}">
+        const el = document.createElement('div');
+        el.className = 'group';
+        el.innerHTML = `
+            <div class="group-header ${isExpanded ? 'expanded' : ''}" data-group="${groupName}">
+                <span class="group-arrow">${isExpanded ? '▼' : '▶'}</span>
+                <span class="group-title">${groupName}</span>
+                <span class="group-count">${running}/${groupSvcs.length}</span>
+            </div>
+            <div class="group-content ${isExpanded ? '' : 'collapsed'}">
+                ${groupSvcs.map(svc => `
+                    <div class="service-item ${activeTab === `http://localhost:${svc.port}` ? 'active' : ''}" 
+                         data-name="${svc.name}" data-url="http://localhost:${svc.port}">
+                        <div class="service-item-top">
                             <span class="service-icon">${ICONS[svc.name] || '⚡'}</span>
                             <span class="service-name">${svc.name}</span>
                             <span class="service-status status-${svc.running ? 'running' : (svc.installed ? 'stopped' : 'not-installed')}">
                                 ${svc.running ? '●' : (svc.installed ? '○' : '◌')}
                             </span>
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                        <div class="service-item-bottom">
+                            <span class="service-port">:${svc.port}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
             
             el.querySelector('.group-header').addEventListener('click', () => {
                 if (expandedGroups.has(groupName)) expandedGroups.delete(groupName);
@@ -87,7 +105,7 @@
         saveSettings();
     }
     
-    function openAppTab(url, name) {
+    async function openAppTab(url, name) {
         if (tabs.find(t => t.url === url)) {
             switchToTab(url);
             return;
@@ -104,6 +122,7 @@
             svc = { name: name || urlName, badge: '⚡' };
         }
         
+        const isSlowApp = LOADING_PORTS.includes(port);
         const contentArea = document.getElementById('content-area');
         const wp = document.getElementById('welcome-panel');
         if (wp) wp.style.display = 'none';
@@ -113,8 +132,66 @@
         container.style.display = 'none';
         container.style.width = '100%';
         container.style.height = '100%';
-        container.innerHTML = `<webview data-url="${url}" src="${url}" style="width:100%;height:100%;border:none;" allowpopups></webview>`;
+        
+        // Check if service is running before showing webview
+        const isRunning = await checkServiceRunning(port);
+        
+        if (!isRunning && url.includes('localhost')) {
+            // Show "not running" placeholder
+            container.innerHTML = `
+                <div class="not-running-panel">
+                    <div class="not-running-icon">${ICONS[svc.name] || '⚡'}</div>
+                    <h2>${svc.name}</h2>
+                    <div class="status-text">Not Running</div>
+                    <button class="start-btn" onclick="startAppFromPanel('${svc.name}', ${port})">
+                        Start ${svc.name}
+                    </button>
+                    <div class="hint-text">Click to start the backend service</div>
+                    <div class="port-text">Port: ${port}</div>
+                </div>
+            `;
+            // Expose start function globally
+            window.startAppFromPanel = async (appName, appPort) => {
+                const btn = container.querySelector('.start-btn');
+                btn.disabled = true;
+                btn.textContent = 'Starting...';
+                const result = await window.workshop.startService(appName);
+                if (result.success) {
+                    // Reload to show the app
+                    setTimeout(() => {
+                        openAppTab(url, name);
+                    }, 2000);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Start Failed - ' + (result.error || 'Unknown error');
+                }
+            };
+        } else if (isSlowApp) {
+            // Add loading indicator for slow apps
+            container.innerHTML = `
+                <div class="loading-overlay" id="loading-${port}">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading ${svc.name}...</div>
+                </div>
+                <webview data-url="${url}" src="${url}" style="width:100%;height:100%;border:none;" allowpopups></webview>
+            `;
+        } else {
+            container.innerHTML = `<webview data-url="${url}" src="${url}" style="width:100%;height:100%;border:none;" allowpopups></webview>`;
+        }
         contentArea.appendChild(container);
+        
+        // Listen for webview ready event
+        const webview = container.querySelector('webview');
+        webview.addEventListener('dom-ready', () => {
+            const loadingEl = document.getElementById(`loading-${port}`);
+            if (loadingEl) loadingEl.style.display = 'none';
+        });
+        
+        // Fallback: hide loading after 5 seconds
+        setTimeout(() => {
+            const loadingEl = document.getElementById(`loading-${port}`);
+            if (loadingEl) loadingEl.style.display = 'none';
+        }, 5000);
         
         tabs.push({ id: Date.now().toString(), url, name: svc.name, icon: ICONS[svc.name] || svc.badge || '⚡' });
         renderTabs();
@@ -169,10 +246,11 @@
         });
     }
     
-    function updateStatusBar() {
+    async function updateStatusBar() {
         const sa = document.getElementById('status-apps');
         const si = document.getElementById('status-infra');
         const sm = document.getElementById('status-message');
+        const sauto = document.getElementById('status-autostart');
         
         const amtlApps = services.filter(s => ['Core AMTL', 'CK-Mani', 'CK', 'Intelligence', 'Marketing', 'Operations'].includes(s.group));
         const infraSvcs = services.filter(s => ['Infrastructure', 'Dev Tools'].includes(s.group));
@@ -182,6 +260,15 @@
         
         if (sa) sa.innerHTML = `● ${runningApps}/${amtlApps.length}`;
         if (si) si.innerHTML = `● ${runningInfra}/${infraSvcs.length}`;
+        
+        if (sauto) {
+            try {
+                const autoStart = await window.workshop.getAutoStart();
+                sauto.innerHTML = `🚀 ${autoStart.autoStart ? 'On' : 'Off'}`;
+            } catch (e) {
+                sauto.innerHTML = '🚀 On';
+            }
+        }
         
         if (sm) {
             const allRunning = runningApps === amtlApps.length && amtlApps.length > 0;
@@ -211,6 +298,15 @@
             if (item) {
                 const svc = services.find(s => s.name === item.dataset.name);
                 if (svc) {
+                    // Check if this is a desktop app - launch in dedicated window
+                    if (svc.hasDesktop) {
+                        await window.workshop.openDesktop(svc.name);
+                        recentApps = [svc.name, ...recentApps.filter(a => a !== svc.name)].slice(0, 5);
+                        saveSettings();
+                        return;
+                    }
+                    
+                    // Web apps - open in tab
                     const url = svc.webviewUrl || `http://localhost:${svc.port}`;
                     openService(svc.name, url);
                 }
