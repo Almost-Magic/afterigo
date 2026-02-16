@@ -605,7 +605,7 @@ async function loadAll(){
     document.getElementById('sModules').textContent=mods.length;
     document.getElementById('dModGrid').innerHTML=mods.map(function(m){return '<div class="mod-chip"><div class="mod-dot"></div>'+m+'</div>'}).join('');
 
-    document.getElementById('chatHello').innerHTML="Good morning, Mani. I'm connected to Ollama \u2014 ask me anything.<br><br><small style='color:var(--text-muted)'>I know about all your AMTL tools, priorities, relationships, and content. Try asking about your tools, priorities, or just have a conversation.</small>";
+    document.getElementById('chatHello').innerHTML="Good morning, Mani. I'm connected to Claude \u2014 ask me anything.<br><br><small style='color:var(--text-muted)'>I know about all your AMTL tools, priorities, relationships, and content. Try asking about your tools, priorities, or just have a conversation.</small>";
 
     try{
       var c=await api('GET','/api/compassion/wellbeing');
@@ -724,7 +724,7 @@ async function sendChat(){
     }
   }catch(e){}
 
-  /* All other messages go to Ollama via /api/chat */
+  /* All other messages go to Claude CLI via /api/chat */
   chatBusy=true;
   document.getElementById('sendBtn').disabled=true;
   addTyping();
@@ -741,7 +741,7 @@ async function sendChat(){
       chatHistory.push({role:'assistant',content:reply});
       /* Basic markdown: **bold**, \n to <br> */
       var formatted=escHtml(reply).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-      addMsg(formatted,'elaine',r.via||'ollama');
+      addMsg(formatted,'elaine',r.via||'claude-cli');
       speakText(reply);
     }
   }catch(e){
@@ -1077,11 +1077,11 @@ async function loadBriefing(){
       document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content.');
       document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'unknown');
       var ok=r.ollama_ok;
-      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Claude CLI':'Fallback (raw template)');
       /* Update dashboard "This Morning" card */
       var snippet=(r.briefing||'').split('\n').filter(function(l){return l.trim()&&!l.startsWith('###')}).slice(0,2).join(' ').substring(0,120);
       document.getElementById('dBriefOpen').textContent=snippet||"Brief available - click Full Brief to read.";
-      document.getElementById('dBriefSummary').textContent='Generated '+(r.generated_at||'').substring(0,10)+(ok?' via Ollama':' (fallback)');
+      document.getElementById('dBriefSummary').textContent='Generated '+(r.generated_at||'').substring(0,10)+(ok?' via Claude CLI':' (fallback)');
     }
   }catch(e){
     document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Failed to load: '+escHtml(e.message)+'</span>';
@@ -1097,7 +1097,7 @@ async function generateBriefing(){
   briefLoading=true;
   document.getElementById('briefGenBtn').disabled=true;
   document.getElementById('briefRefreshBtn').disabled=true;
-  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Generating brief via Ollama (this may take a minute)...</div>';
+  document.getElementById('briefContent').innerHTML='<div class="brief-loading"><div class="brief-spinner"></div>Generating brief via Claude CLI (this may take a minute)...</div>';
   document.getElementById('briefMeta').textContent='Generating...';
   try{
     var r=await api('POST','/api/morning-briefing/generate');
@@ -1107,7 +1107,7 @@ async function generateBriefing(){
       document.getElementById('briefContent').innerHTML=renderBriefContent(r.briefing||'No content returned.');
       document.getElementById('briefMeta').textContent='Generated: '+(r.generated_at||'just now');
       var ok=r.ollama_ok;
-      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Ollama':'Fallback (raw template)');
+      document.getElementById('briefStatus').innerHTML='<div class="dot '+(ok?'ok':'fallback')+'"></div>'+(ok?'Claude CLI':'Fallback (raw template)');
     }
   }catch(e){
     document.getElementById('briefContent').innerHTML='<span style="color:var(--error)">Generation failed: '+escHtml(e.message)+'</span>';

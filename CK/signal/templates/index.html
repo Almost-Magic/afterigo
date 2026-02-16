@@ -191,7 +191,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div class="card-title" style="margin-bottom:0">Intelligence Brief</div>
-          <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyse via Ollama</button>
+          <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyse via Claude</button>
         </div>
         <div id="analysisResult"></div>
       </div>
@@ -391,7 +391,7 @@ async function runAnalysis(){
   var btn=document.getElementById('analyzeBtn');
   btn.disabled=true;btn.textContent='Analysing...';
   var r=await api('/api/profiles/'+currentProfile.id+'/analyze',{method:'POST'});
-  btn.disabled=false;btn.textContent='Analyse via Ollama';
+  btn.disabled=false;btn.textContent='Analyse via Claude';
   if(r.ok){
     var d=r.data;
     document.getElementById('analysisResult').innerHTML=

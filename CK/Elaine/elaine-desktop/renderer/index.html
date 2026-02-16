@@ -456,7 +456,7 @@ async function loadAll(){
     document.getElementById('sModules').textContent=mods.length;
     document.getElementById('dModGrid').innerHTML=mods.map(m=>'<div class="mod-chip"><div class="mod-dot"></div>'+m+'</div>').join('');
 
-    document.getElementById('chatHello').innerHTML="Good morning, Mani. I'm connected to Ollama \u2014 ask me anything.<br><br><small style='color:var(--text-muted)'>I know about all your AMTL tools, priorities, relationships, and content. Try asking about your tools, priorities, or just have a conversation.</small>";
+    document.getElementById('chatHello').innerHTML="Good morning, Mani. I'm connected to Claude \u2014 ask me anything.<br><br><small style='color:var(--text-muted)'>I know about all your AMTL tools, priorities, relationships, and content. Try asking about your tools, priorities, or just have a conversation.</small>";
 
     try{
       var c=await api('GET','/api/compassion/wellbeing');
@@ -570,7 +570,7 @@ async function sendChat(){
     }
   }catch(e){}
 
-  /* All other messages → Ollama via /api/chat */
+  /* All other messages → Claude via /api/chat */
   chatBusy=true;
   addTyping();
   chatHistory.push({role:'user',content:t});
@@ -584,7 +584,7 @@ async function sendChat(){
       var reply=r.reply||'No response from model.';
       chatHistory.push({role:'assistant',content:reply});
       var formatted=escHtml(reply).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-      addMsg(formatted,'elaine',r.via||'ollama');
+      addMsg(formatted,'elaine',r.via||'claude');
       speakText(reply);
     }
   }catch(e){

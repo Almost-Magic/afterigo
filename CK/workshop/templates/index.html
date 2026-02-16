@@ -1271,54 +1271,14 @@
             card.dataset.id = app.id;
 
             if (app.url) {
-                card.href = '#';
-                card.onclick = async (e) => {
-                    // Don't trigger if clicking the launch button
-                    if (e.target.classList.contains('card-launch-btn')) return;
-                    e.preventDefault();
-                    // Check if service is running first
-                    try {
-                        const controller = new AbortController();
-                        setTimeout(() => controller.abort(), 2000);
-                        await fetch(app.url, { mode: 'no-cors', signal: controller.signal });
-                        // It's running — just open it
-                        window.open(app.url, '_blank');
-                    } catch {
-                        // Not running — try to launch it
-                        showToast(`Starting ${app.name}...`);
-                        const indicator = card.querySelector('.app-status-indicator');
-                        if (indicator) {
-                            indicator.classList.remove('status-live', 'status-stopped');
-                            indicator.classList.add('status-building');
-                        }
-                        try {
-                            const resp = await fetch(`/api/services/launch/${app.id}`, { method: 'POST' });
-                            const data = await resp.json();
-                            if (data.status === 'launched' || data.status === 'already_running') {
-                                if (indicator) {
-                                    indicator.classList.remove('status-building');
-                                    indicator.classList.add('status-live');
-                                }
-                                showToast(`${app.name} is running!`);
-                                setTimeout(() => window.open(app.url, '_blank'), 500);
-                            } else if (data.status === 'starting') {
-                                showToast(`${app.name} is starting — try again in a few seconds`);
-                            } else {
-                                if (indicator) {
-                                    indicator.classList.remove('status-building');
-                                    indicator.classList.add('status-stopped');
-                                }
-                                showToast(data.message || `Could not start ${app.name}`);
-                            }
-                        } catch {
-                            showToast(`Could not start ${app.name} — check Workshop terminal`);
-                        }
-                    }
-                };
+                card.href = app.url;
+                card.target = '_blank';
+                card.rel = 'noopener';
+                // Native <a> tag handles click → opens in new tab.
+                // Launch button uses stopPropagation() to prevent card navigation.
             } else {
                 card.href = '#';
                 card.onclick = (e) => {
-                    if (e.target.classList.contains('card-launch-btn')) return;
                     e.preventDefault();
                     showToast(`${app.name} — not yet built. Port ${app.port} reserved.`);
                 };
@@ -1478,45 +1438,20 @@
         // DESKTOP APP LAUNCH — One-click launch with auto backend start
         // ================================================================
         async function launchDesktopApp(desktopId, appName, btnElement) {
-            if (btnElement) {
-                btnElement.classList.add('launching');
-                btnElement.textContent = 'Starting...';
+            // Find the app URL from the registry and open in browser
+            const allApps = [...apps.ck, ...(apps.oss||[]), ...(apps.infra||[]), ...(apps.external||[])];
+            const reverseMap = {};
+            for (const [appId, dId] of Object.entries(DESKTOP_ID_MAP)) {
+                reverseMap[dId] = appId;
             }
-            showToast(`Launching ${appName} desktop...`);
+            const appId = reverseMap[desktopId] || desktopId;
+            const app = allApps.find(a => a.id === appId);
 
-            try {
-                const resp = await fetch(`/api/desktop/launch/${desktopId}`, { method: 'POST' });
-                const data = await resp.json();
-
-                if (data.status === 'launched') {
-                    showToast(`${appName} launched (backend: ${data.backend})`);
-                    if (btnElement) {
-                        btnElement.textContent = 'Running';
-                        btnElement.style.color = 'var(--green)';
-                        btnElement.style.borderColor = 'rgba(52, 211, 153, 0.3)';
-                    }
-                    // Update status indicator
-                    const card = document.querySelector(`[data-id="${desktopId}"], [data-id="${appName.toLowerCase()}"]`);
-                    if (card) {
-                        const indicator = card.querySelector('.app-status-indicator');
-                        if (indicator) {
-                            indicator.classList.remove('status-stopped', 'status-building');
-                            indicator.classList.add('status-live');
-                        }
-                    }
-                } else {
-                    showToast(data.message || `Could not launch ${appName}`);
-                    if (btnElement) {
-                        btnElement.classList.remove('launching');
-                        btnElement.textContent = 'Launch';
-                    }
-                }
-            } catch (e) {
-                showToast(`Failed to launch ${appName} — check Workshop`);
-                if (btnElement) {
-                    btnElement.classList.remove('launching');
-                    btnElement.textContent = 'Launch';
-                }
+            if (app && app.url) {
+                window.open(app.url, '_blank', 'noopener');
+                showToast(`Opening ${appName} in browser...`);
+            } else {
+                showToast(`${appName} — no URL configured yet.`);
             }
         }
 

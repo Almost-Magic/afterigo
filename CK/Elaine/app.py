@@ -289,9 +289,8 @@ def create_app():
     app.register_blueprint(create_gatekeeper_routes(gatekeeper))
 
     # Chat + Tool Registry + Service Health
-    from api_routes_chat import create_chat_routes, prewarm_chat_model
+    from api_routes_chat import create_chat_routes
     app.register_blueprint(create_chat_routes())
-    prewarm_chat_model()  # background thread — loads qwen3:4b into VRAM
 
     # Phase 5: Briefing, POI, Resilience, Memory routes
     import modules.phase5_routes as _p5
