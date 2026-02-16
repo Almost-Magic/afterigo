@@ -8,7 +8,7 @@ Almost Magic Tech Lab
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
-from ..services import ollama, searxng
+from ..services import ai_engine, searxng
 from ..models import db, Brand, Scan, Hallucination, AuthorityResult, ContentBrief, TrendSignal
 
 seo_ask_bp = Blueprint("seo_ask", __name__)
@@ -99,7 +99,7 @@ Respond with JSON containing:
   "action_items": ["3-5 specific next steps"]
 }}"""
 
-    result = ollama.generate_json(analysis_prompt, system=system_prompt)
+    result = ai_engine.generate_json(analysis_prompt, system=system_prompt)
 
     if result.get("error"):
         # Return a useful response even if LLM is down
@@ -199,8 +199,9 @@ def elaine_briefing():
             .scalar()
         )
 
-        # System health
-        ollama_health = ollama.health_check()
+        # System health - use ai_engine for Ollama health check
+        from ..services import ollama as ollama_service
+        ollama_health = ollama_service.health_check()
         searxng_health = searxng.health_check()
 
         return jsonify({

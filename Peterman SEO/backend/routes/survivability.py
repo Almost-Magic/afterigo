@@ -5,7 +5,7 @@ Content preservation testing — does the LLM remember your brand accurately?
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Scan, SurvivabilityResult
-from ..services import ollama
+from ..services import ai_engine
 
 survivability_bp = Blueprint("survivability", __name__)
 
@@ -44,11 +44,11 @@ def run_survivability_test(brand_id):
             # Ask the LLM to recall this information
             prompt = f'What do you know about {brand.name}? Specifically, what is their {content_type}? ' \
                      f'If you know their {content_type}, state it exactly.'
-            llm_result = ollama.generate(prompt)
+            llm_result = ai_engine.generate(prompt)
             recall_text = llm_result.get("text", "")
 
             # Use LLM to score accuracy
-            score_result = ollama.generate_json(
+            score_result = ai_engine.generate_json(
                 f'Compare the original brand content with what the LLM recalled.\n'
                 f'Original: "{original}"\nLLM Recall: "{recall_text[:500]}"\n'
                 f'Return JSON: {{"accuracy": 0-100, "preserved": true/false, '

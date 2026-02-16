@@ -5,7 +5,7 @@ Citation probability, competitor shadow analysis, content atomisation.
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Competitor, Scan, CitationResult
-from ..services import ollama, searxng
+from ..services import ai_engine, searxng
 
 amplifier_bp = Blueprint("amplifier", __name__)
 
@@ -30,14 +30,14 @@ def run_amplifier_scan(brand_id):
 
         results = []
         for query in queries:
-            llm_result = ollama.generate(query)
+            llm_result = ai_engine.generate(query)
             response = llm_result.get("text", "")
 
             # Analyse citation
             brand_cited = brand.name.lower() in response.lower()
             comps_cited = [c.name for c in competitors if c.name.lower() in response.lower()]
 
-            analysis = ollama.generate_json(
+            analysis = ai_engine.generate_json(
                 f'Analyse this LLM response for brand citation patterns.\n'
                 f'Query: "{query}"\nResponse: "{response[:1000]}"\n'
                 f'Brand: "{brand.name}"\n'

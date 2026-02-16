@@ -5,7 +5,7 @@ Content production pipeline — generate briefs and content from perception gaps
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Scan, ContentBrief, Hallucination, AuthorityResult
-from ..services import ollama
+from ..services import ai_engine
 
 forge_bp = Blueprint("forge", __name__)
 
@@ -29,7 +29,7 @@ def generate_briefs(brand_id):
         ).limit(5).all()
 
         for h in hallucinations:
-            result = ollama.generate_json(
+            result = ai_engine.generate_json(
                 f'Create a content brief to correct this hallucination about "{brand.name}".\n'
                 f'Hallucinated claim: "{h.hallucinated_claim}"\n'
                 f'Actual truth: "{h.actual_truth or "needs research"}"\n'
@@ -53,7 +53,7 @@ def generate_briefs(brand_id):
         ).limit(5).all()
 
         for gap in gaps:
-            result = ollama.generate_json(
+            result = ai_engine.generate_json(
                 f'Create a content brief to improve SERP ranking for "{brand.name}" '
                 f'on keyword "{gap.keyword}".\n'
                 f'Return JSON: {{"title": "article title", "brief_type": "blog", '
@@ -73,7 +73,7 @@ def generate_briefs(brand_id):
 
         # 3. If no gaps found, generate general thought leadership
         if not briefs:
-            result = ollama.generate_json(
+            result = ai_engine.generate_json(
                 f'Create 3 thought leadership content briefs for "{brand.name}" '
                 f'in {brand.industry or "their industry"}.\n'
                 f'Return JSON: {{"briefs": [{{"title": "...", "brief_type": "blog", '
@@ -131,7 +131,7 @@ def generate_content(brand_id, brief_id):
     brief = ContentBrief.query.filter_by(id=brief_id, brand_id=brand_id).first_or_404()
 
     outline_text = "\n".join(f"- {o}" for o in (brief.outline or []))
-    result = ollama.generate(
+    result = ai_engine.generate(
         f'Write a {brief.brief_type} article for {brand.name} ({brand.industry or ""}).\n'
         f'Title: {brief.title}\nTarget keyword: {brief.target_keyword}\n'
         f'Outline:\n{outline_text}\n\n'

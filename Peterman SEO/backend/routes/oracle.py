@@ -5,7 +5,7 @@ Predictive scanning, trend detection, industry framing analysis.
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Scan, TrendSignal
-from ..services import ollama, searxng
+from ..services import ai_engine, searxng
 
 oracle_bp = Blueprint("oracle", __name__)
 
@@ -29,7 +29,7 @@ def run_oracle_scan(brand_id):
         signals = []
         for article in news_results[:10]:
             # Analyse each article for relevance to brand
-            analysis = ollama.generate_json(
+            analysis = ai_engine.generate_json(
                 f'Analyse this news article for relevance to "{brand.name}" ({industry}).\n'
                 f'Title: "{article.get("title", "")}"\n'
                 f'Content: "{article.get("content", "")[:500]}"\n'

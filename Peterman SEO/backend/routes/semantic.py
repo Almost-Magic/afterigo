@@ -1,11 +1,13 @@
 """
 Peterman V4.1 — Chamber 2: Semantic Core
 Fingerprinting, drift detection, narrative analysis.
+
+Uses unified AI Engine (Claude CLI primary, Ollama fallback).
 """
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Scan, SemanticFingerprint
-from ..services import ollama
+from ..services import ai_engine
 
 semantic_bp = Blueprint("semantic", __name__)
 
@@ -26,12 +28,12 @@ def run_semantic_scan(brand_id):
                      f"Tagline: {brand.tagline or 'N/A'}. " \
                      f"Value propositions: {', '.join(brand.value_propositions or [])}."
 
-        # Generate embedding
-        embed_result = ollama.embed(brand_text)
+        # Generate embedding (uses Ollama)
+        embed_result = ai_engine.embed(brand_text)
         embedding = embed_result.get("embedding") or None
 
-        # Ask LLM for key themes and narrative
-        analysis = ollama.generate_json(
+        # Ask LLM for key themes and narrative (uses unified AI engine)
+        analysis = ai_engine.generate_json(
             f'Analyse the brand "{brand.name}" ({brand.industry or "unknown industry"}). '
             f'Description: {brand.description or "N/A"}. '
             f'Return JSON: {{"key_themes": ["theme1","theme2","theme3","theme4","theme5"], '

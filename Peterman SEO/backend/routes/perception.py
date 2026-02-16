@@ -4,11 +4,13 @@ Endpoints 18-29
 
 Queries LLMs to discover how they perceive a brand.
 Detects hallucinations, tracks Share of Voice, measures trust class.
+
+Uses unified AI Engine (Claude CLI primary, Ollama fallback).
 """
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Keyword, Scan, PerceptionResult, Hallucination, ShareOfVoice
-from ..services import ollama
+from ..services import ai_engine
 
 perception_bp = Blueprint("perception", __name__)
 
@@ -82,7 +84,7 @@ Analyse and return JSON:
     "citations": ["any URLs or sources referenced"]
 }}"""
 
-    result = ollama.generate_json(analysis_prompt)
+    result = ai_engine.generate_json(analysis_prompt)
     return result.get("parsed", {})
 
 
@@ -92,7 +94,10 @@ Analyse and return JSON:
 
 @perception_bp.route("/api/scan/perception/<int:brand_id>", methods=["POST"])
 def run_perception_scan(brand_id):
-    """Endpoint 18: Run full perception scan."""
+    """Endpoint 18: Run full perception scan.
+    
+    Uses unified AI Engine (Claude CLI primary, Ollama fallback).
+    """
     brand = Brand.query.get_or_404(brand_id)
     data = request.get_json() or {}
     depth = data.get("depth", "standard")
@@ -118,10 +123,10 @@ def run_perception_scan(brand_id):
     # Build queries
     queries = _build_perception_queries(brand, keywords)
 
-    # Determine which models to use
-    models = ["ollama-llama3.1"]
-    if depth == "deep":
-        models.append("ollama-gemma2")
+    # Get AI status to determine preferred engine
+    ai_status = ai_engine.get_status()
+    preferred_engine = ai_status.get("preferred_engine", "none")
+    engine_label = preferred_engine if preferred_engine != "none" else "claude-cli/ollama"
 
     total_tokens = 0
     total_calls = 0
@@ -130,61 +135,55 @@ def run_perception_scan(brand_id):
 
     try:
         for query in queries:
-            for model_tag in models:
-                # Query the LLM
-                if model_tag == "ollama-llama3.1":
-                    llm_result = ollama.generate(query, system=PERCEPTION_SYSTEM)
-                elif model_tag == "ollama-gemma2":
-                    llm_result = ollama.generate_fast(query, system=PERCEPTION_SYSTEM)
-                else:
-                    continue
+            # Query the unified AI engine
+            llm_result = ai_engine.generate(query, system=PERCEPTION_SYSTEM)
+            
+            total_calls += 1
+            total_tokens += llm_result.get("tokens_used", 0)
 
-                total_calls += 1
-                total_tokens += llm_result.get("tokens_used", 0)
+            if llm_result.get("error"):
+                continue
 
-                if llm_result.get("error"):
-                    continue
+            # Analyse the response
+            analysis = _analyse_response(brand, query, llm_result["text"], engine_label)
 
-                # Analyse the response
-                analysis = _analyse_response(brand, query, llm_result["text"], model_tag)
+            # Generate embedding for the response (uses Ollama)
+            embed_result = ai_engine.embed(llm_result["text"])
 
-                # Generate embedding for the response
-                embed_result = ollama.embed(llm_result["text"])
+            # Store perception result
+            pr = PerceptionResult(
+                scan_id=scan.id,
+                brand_id=brand_id,
+                query=query,
+                model=engine_label,
+                response=llm_result["text"][:5000],  # Truncate for storage
+                response_embedding=embed_result.get("embedding") or None,
+                brand_mentioned=analysis.get("brand_mentioned", False),
+                mention_position=analysis.get("mention_position"),
+                mention_context=analysis.get("mention_context", "absent"),
+                trust_class=analysis.get("trust_class", "absent"),
+                citations=analysis.get("citations", []),
+                competitors_mentioned=analysis.get("competitors_mentioned", []),
+                accuracy_score=analysis.get("accuracy_score"),
+                sentiment_score=analysis.get("sentiment_score"),
+                prominence_score=analysis.get("prominence_score"),
+            )
+            db.session.add(pr)
+            results_list.append(pr)
 
-                # Store perception result
-                pr = PerceptionResult(
-                    scan_id=scan.id,
+            # Track hallucinations
+            for h in analysis.get("hallucinations", []):
+                hallucination = Hallucination(
                     brand_id=brand_id,
+                    scan_id=scan.id,
+                    model=engine_label,
                     query=query,
-                    model=model_tag,
-                    response=llm_result["text"][:5000],  # Truncate for storage
-                    response_embedding=embed_result.get("embedding") or None,
-                    brand_mentioned=analysis.get("brand_mentioned", False),
-                    mention_position=analysis.get("mention_position"),
-                    mention_context=analysis.get("mention_context", "absent"),
-                    trust_class=analysis.get("trust_class", "absent"),
-                    citations=analysis.get("citations", []),
-                    competitors_mentioned=analysis.get("competitors_mentioned", []),
-                    accuracy_score=analysis.get("accuracy_score"),
-                    sentiment_score=analysis.get("sentiment_score"),
-                    prominence_score=analysis.get("prominence_score"),
+                    hallucinated_claim=h.get("claim", ""),
+                    severity=h.get("severity", "medium"),
+                    category=h.get("category", "factual"),
                 )
-                db.session.add(pr)
-                results_list.append(pr)
-
-                # Track hallucinations
-                for h in analysis.get("hallucinations", []):
-                    hallucination = Hallucination(
-                        brand_id=brand_id,
-                        scan_id=scan.id,
-                        model=model_tag,
-                        query=query,
-                        hallucinated_claim=h.get("claim", ""),
-                        severity=h.get("severity", "medium"),
-                        category=h.get("category", "factual"),
-                    )
-                    db.session.add(hallucination)
-                    hallucinations_found.append(hallucination)
+                db.session.add(hallucination)
+                hallucinations_found.append(hallucination)
 
         # Calculate aggregate scores
         mentioned_count = sum(1 for r in results_list if r.brand_mentioned)
@@ -198,7 +197,7 @@ def run_perception_scan(brand_id):
         scan.api_calls = total_calls
         scan.tokens_used = total_tokens
         scan.estimated_cost = 0.0  # All local
-        scan.models_used = models
+        scan.models_used = [preferred_engine] if preferred_engine != "none" else ["claude-cli/ollama"]
         scan.summary = {
             "total_queries": len(queries),
             "total_responses": total_results,

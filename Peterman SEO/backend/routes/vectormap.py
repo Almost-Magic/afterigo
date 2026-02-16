@@ -4,7 +4,7 @@ Embedding-based brand positioning and competitive mapping.
 """
 from flask import Blueprint, jsonify, request
 from ..models import db, Brand, Competitor, SemanticFingerprint
-from ..services import ollama
+from ..services import ai_engine
 
 vectormap_bp = Blueprint("vectormap", __name__)
 
@@ -29,14 +29,14 @@ def generate_vectormap(brand_id):
 
     # Embed brand
     brand_text = f"{brand.name}: {brand.description or brand.industry or ''}"
-    brand_embed = ollama.embed(brand_text)
+    brand_embed = ai_engine.embed(brand_text)
     brand_vec = brand_embed.get("embedding", [])
 
     # Embed competitors
     comp_results = []
     for c in competitors:
         comp_text = f"{c.name}: {c.notes or ''}"
-        comp_embed = ollama.embed(comp_text)
+        comp_embed = ai_engine.embed(comp_text)
         comp_vec = comp_embed.get("embedding", [])
         similarity = _cosine_sim(brand_vec, comp_vec)
         comp_results.append({
@@ -86,12 +86,12 @@ def nearest_neighbours(brand_id):
     competitors = Competitor.query.filter_by(brand_id=brand_id).all()
 
     brand_text = f"{brand.name}: {brand.description or brand.industry or ''}"
-    brand_embed = ollama.embed(brand_text)
+    brand_embed = ai_engine.embed(brand_text)
     brand_vec = brand_embed.get("embedding", [])
 
     neighbours = []
     for c in competitors:
-        comp_embed = ollama.embed(f"{c.name}: {c.notes or ''}")
+        comp_embed = ai_engine.embed(f"{c.name}: {c.notes or ''}")
         comp_vec = comp_embed.get("embedding", [])
         sim = _cosine_sim(brand_vec, comp_vec)
         neighbours.append({"name": c.name, "similarity": sim, "relationship": c.relationship})

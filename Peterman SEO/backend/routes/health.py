@@ -1,10 +1,10 @@
 """
 Peterman V4.1 — Health & System Routes
-Endpoints 1-6
+Endpoints 1-7
 """
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
-from ..services import ollama, searxng, snitcher
+from ..services import ollama, searxng, snitcher, ai_engine
 
 health_bp = Blueprint("health", __name__)
 
@@ -31,6 +31,7 @@ def system_status():
     ollama_status = ollama.health_check()
     searxng_status = searxng.health_check()
     snitcher_status = snitcher.health_check()
+    ai_status = ai_engine.get_status()
 
     # Check PostgreSQL
     try:
@@ -50,8 +51,21 @@ def system_status():
             "ollama": ollama_status,
             "searxng": searxng_status,
             "snitcher": snitcher_status,
+            "ai_engine": ai_status,
         },
         "port": current_app.config.get("APP_PORT", 5008),
+    })
+
+
+@health_bp.route("/api/ai/status", methods=["GET"])
+def ai_status():
+    """Endpoint 2b: AI Engine status (Claude CLI primary, Ollama fallback)."""
+    status = ai_engine.get_status()
+    return jsonify({
+        "ai_engine": status,
+        "preferred_engine": status.get("preferred_engine"),
+        "claude_cli_available": status.get("claude_cli", {}).get("available"),
+        "ollama_available": status.get("ollama", {}).get("available"),
     })
 
 

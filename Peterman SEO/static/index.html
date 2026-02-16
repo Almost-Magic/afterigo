@@ -3,606 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peterman V4.1 — The Authority & Presence Engine</title>
+    <title>Peterman V4.1 — AI-Era SEO & Brand Authority</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Sidebar -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">
                 <span class="logo-icon">P</span>
-                <div class="logo-text">
-                    <span class="logo-title">Peterman</span>
-                    <span class="logo-version">V4.1</span>
+                <div>
+                    <span class="brand-name">Peterman</span>
+                    <span class="brand-tagline">The Authority & Presence Engine</span>
                 </div>
             </div>
-        </div>
-        <div class="sidebar-nav">
-            <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                <span>Dashboard</span>
-            </button>
-            <button class="nav-item" data-page="brands" onclick="navigateTo('brands')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>Brands</span>
-            </button>
-            <button class="nav-item" data-page="seoask" onclick="navigateTo('seoask')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>SEO Ask</span>
-            </button>
-            <div class="nav-section">10 Chambers</div>
-            <button class="nav-item" data-page="perception" onclick="navigateTo('perception')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                <span><b>1</b> Perception</span>
-            </button>
-            <button class="nav-item" data-page="semantic" onclick="navigateTo('semantic')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                <span><b>2</b> Semantic</span>
-            </button>
-            <button class="nav-item" data-page="vectormap" onclick="navigateTo('vectormap')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><line x1="14.5" y1="9.5" x2="17.5" y2="6.5"/><line x1="9.5" y1="14.5" x2="6.5" y2="17.5"/></svg>
-                <span><b>3</b> Vector Map</span>
-            </button>
-            <button class="nav-item" data-page="authority" onclick="navigateTo('authority')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span><b>4</b> Authority</span>
-            </button>
-            <button class="nav-item" data-page="survivability" onclick="navigateTo('survivability')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-                <span><b>5</b> Survivability</span>
-            </button>
-            <button class="nav-item" data-page="machine" onclick="navigateTo('machine')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <span><b>6</b> Machine</span>
-            </button>
-            <button class="nav-item" data-page="amplifier" onclick="navigateTo('amplifier')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                <span><b>7</b> Amplifier</span>
-            </button>
-            <button class="nav-item" data-page="proof" onclick="navigateTo('proof')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                <span><b>8</b> The Proof</span>
-            </button>
-            <button class="nav-item" data-page="oracle" onclick="navigateTo('oracle')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                <span><b>9</b> Oracle</span>
-            </button>
-            <button class="nav-item" data-page="forge" onclick="navigateTo('forge')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                <span><b>10</b> The Forge</span>
-            </button>
-            <div class="nav-section">Tools</div>
-            <button class="nav-item" data-page="hallucinations" onclick="navigateTo('hallucinations')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span>Hallucinations</span>
-            </button>
-            <button class="nav-item" data-page="sov" onclick="navigateTo('sov')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span>Share of Voice</span>
-            </button>
-            <button class="nav-item" data-page="browser" onclick="navigateTo('browser')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span>Browser LLMs</span>
-            </button>
-            <div class="nav-section">Analytics</div>
-            <button class="nav-item" data-page="matomo" onclick="navigateTo('matomo')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-                <span>Matomo Analytics</span>
-            </button>
-        </div>
-        <div class="sidebar-footer">
-            <div class="system-badge">
-                <span class="badge-dot" id="systemDot"></span>
-                <span id="systemLabel">Checking...</span>
-            </div>
-            <span class="footer-brand">Almost Magic Tech Lab</span>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Bar -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <h1 id="pageTitle">Dashboard</h1>
-            </div>
-            <div class="topbar-right">
-                <span class="topbar-version" id="appVersion">V4.1.0</span>
-                <span class="topbar-separator">|</span>
-                <span class="topbar-label">The Authority & Presence Engine</span>
+            <div class="header-status" id="systemStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking...</span>
             </div>
         </header>
 
-        <!-- Page Container -->
-        <div class="page-container" id="pageContainer">
-
-            <!-- DASHBOARD PAGE -->
-            <section class="page active" id="page-dashboard">
-                <div class="stat-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Active Brands</div>
-                        <div class="stat-value" id="statBrands">--</div>
-                        <div class="stat-sub">Monitored profiles</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Total Scans</div>
-                        <div class="stat-value" id="statScans">--</div>
-                        <div class="stat-sub">Perception runs</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Hallucinations</div>
-                        <div class="stat-value" id="statHallucinations">--</div>
-                        <div class="stat-sub">Active detections</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">System Status</div>
-                        <div class="stat-value" id="statStatus">--</div>
-                        <div class="stat-sub" id="statUptime">--</div>
-                    </div>
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Domain Input Section -->
+            <section class="section domain-section" id="domainSection">
+                <div class="domain-input-container">
+                    <h1>Enter a Domain to Audit</h1>
+                    <p class="subtitle">Peterman will automatically run a full SEO audit, check AI visibility, and optimise for LLM ranking.</p>
+                    
+                    <form id="domainForm" class="domain-form">
+                        <div class="input-wrapper">
+                            <input type="text" id="domainInput" placeholder="example.com" autocomplete="off" required>
+                            <button type="submit" class="btn btn-gold btn-large" id="auditBtn">
+                                <span class="btn-text">Run Full Audit</span>
+                                <span class="btn-loader" style="display:none;">
+                                    <span class="spinner"></span>
+                                    <span id="auditProgress">Starting...</span>
+                                </span>
+                            </button>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoOptimize" checked>
+                            <span>Automatically apply fixes & generate content</span>
+                        </label>
+                    </form>
                 </div>
+            </section>
 
-                <div class="panel-grid">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <h3>System Dependencies</h3>
-                        </div>
-                        <div class="panel-body" id="depsPanel">
-                            <div class="dep-row"><span>PostgreSQL</span><span class="dep-status" id="depPg">...</span></div>
-                            <div class="dep-row"><span>Ollama (LLMs)</span><span class="dep-status" id="depOllama">...</span></div>
-                            <div class="dep-row"><span>SearXNG (Search)</span><span class="dep-status" id="depSearxng">...</span></div>
-                            <div class="dep-row"><span>Snitcher (Visitors)</span><span class="dep-status" id="depSnitcher">...</span></div>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">
-                            <h3>The 10 Chambers</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="chamber-list">
-                                <div class="chamber-item active-chamber" onclick="navigateTo('perception')"><span class="chamber-num">1</span> Perception Scan <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('semantic')"><span class="chamber-num">2</span> Semantic Core <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('vectormap')"><span class="chamber-num">3</span> Neural Vector Map <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('authority')"><span class="chamber-num">4</span> Authority Engine <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('survivability')"><span class="chamber-num">5</span> Survivability Lab <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('machine')"><span class="chamber-num">6</span> Machine Interface <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('amplifier')"><span class="chamber-num">7</span> Amplifier <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('proof')"><span class="chamber-num">8</span> The Proof <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('oracle')"><span class="chamber-num">9</span> The Oracle <span class="chamber-badge live">Live</span></div>
-                                <div class="chamber-item active-chamber" onclick="navigateTo('forge')"><span class="chamber-num">10</span> The Forge <span class="chamber-badge live">Live</span></div>
+            <!-- Loading Animation -->
+            <section class="section loading-section" id="loadingSection" style="display:none;">
+                <div class="loading-container">
+                    <div class="loading-spinner large"></div>
+                    <h2 id="loadingTitle">Analysing Domain...</h2>
+                    <p id="loadingSubtitle">Please wait while Peterman runs comprehensive checks</p>
+                    
+                    <div class="progress-steps" id="progressSteps">
+                        <div class="step" data-step="crawl">
+                            <div class="step-icon">🔍</div>
+                            <div class="step-content">
+                                <div class="step-name">Crawling Website</div>
+                                <div class="step-status">Extracting meta tags, content, and structure</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <h3>Recent Activity</h3>
-                    </div>
-                    <div class="panel-body" id="recentActivity">
-                        <p class="empty-state">No recent activity. Add a brand and run your first scan.</p>
+                        <div class="step" data-step="perception">
+                            <div class="step-icon">🧠</div>
+                            <div class="step-content">
+                                <div class="step-name">Perception Scan</div>
+                                <div class="step-status">Testing how AI models see your brand</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="meta">
+                            <div class="step-icon">📋</div>
+                            <div class="step-content">
+                                <div class="step-name">Meta Tags</div>
+                                <div class="step-status">Analysing and generating optimised tags</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="schema">
+                            <div class="step-icon">🏷️</div>
+                            <div class="step-content">
+                                <div class="step-name">Structured Data</div>
+                                <div class="step-status">Checking schema markup and rich results</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="sitemap">
+                            <div class="step-icon">🗺️</div>
+                            <div class="step-content">
+                                <div class="step-name">Sitemap</div>
+                                <div class="step-status">Validating XML sitemap and robots.txt</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="ai">
+                            <div class="step-icon">🤖</div>
+                            <div class="step-content">
+                                <div class="step-name">AI Referenceability</div>
+                                <div class="step-status">Checking visibility for Claude, ChatGPT, Gemini</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="llm">
+                            <div class="step-icon">📊</div>
+                            <div class="step-content">
+                                <div class="step-name">LLM Ranking</div>
+                                <div class="step-status">Optimising for AI-generated answers</div>
+                            </div>
+                        </div>
+                        <div class="step" data-step="content">
+                            <div class="step-icon">✍️</div>
+                            <div class="step-content">
+                                <div class="step-name">Content Generation</div>
+                                <div class="step-status">Creating blog posts and optimisations</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- BRANDS PAGE -->
-            <section class="page" id="page-brands">
-                <div class="page-actions">
-                    <button class="btn btn-gold" onclick="showAddBrandModal()">+ Add Brand</button>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Brand Profiles</h3></div>
-                    <div class="panel-body" id="brandsPanel">
-                        <p class="empty-state">No brands configured. Add your first brand to start monitoring.</p>
-                    </div>
-                </div>
-
-                <!-- Add Brand Modal -->
-                <div class="modal-overlay" id="addBrandModal">
-                    <div class="modal">
-                        <div class="modal-header">
-                            <h3>Add Brand Profile</h3>
-                            <button class="modal-close" onclick="closeModal('addBrandModal')">&times;</button>
+            <!-- Results Dashboard -->
+            <section class="section results-section" id="resultsSection" style="display:none;">
+                <div class="results-container">
+                    <!-- Domain Header -->
+                    <div class="results-header">
+                        <div class="domain-display">
+                            <span class="domain-url" id="resultDomain">example.com</span>
+                            <span class="audit-date" id="auditDate"></span>
                         </div>
-                        <form id="addBrandForm" onsubmit="createBrand(event)">
-                            <div class="form-group">
-                                <label for="brandName">Brand Name *</label>
-                                <input type="text" id="brandName" required placeholder="e.g. Almost Magic Tech Lab">
-                            </div>
-                            <div class="form-group">
-                                <label for="brandDomain">Domain</label>
-                                <input type="text" id="brandDomain" placeholder="e.g. almostmagic.com.au">
-                            </div>
-                            <div class="form-group">
-                                <label for="brandIndustry">Industry</label>
-                                <input type="text" id="brandIndustry" placeholder="e.g. AI Consulting">
-                            </div>
-                            <div class="form-group">
-                                <label for="brandDescription">Description</label>
-                                <textarea id="brandDescription" rows="3" placeholder="What does this brand do?"></textarea>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="brandTier">Tier</label>
-                                    <select id="brandTier">
-                                        <option value="growth">Growth</option>
-                                        <option value="authority">Authority</option>
-                                        <option value="enterprise">Enterprise</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="brandFreq">Scan Frequency</label>
-                                    <select id="brandFreq">
-                                        <option value="weekly">Weekly</option>
-                                        <option value="daily">Daily</option>
-                                        <option value="monthly">Monthly</option>
-                                    </select>
+                        <div class="overall-score" id="overallScore">
+                            <div class="score-circle">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="score-bg" cx="50" cy="50" r="45"/>
+                                    <circle class="score-progress" cx="50" cy="50" r="45" id="scoreCircle"/>
+                                </svg>
+                                <div class="score-value">
+                                    <span id="scoreNumber">0</span>
+                                    <span class="score-label">Overall</span>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label><input type="checkbox" id="brandClientZero"> Client Zero (internal brand)</label>
+                        </div>
+                    </div>
+
+                    <!-- Score Cards Grid -->
+                    <div class="score-cards" id="scoreCards">
+                        <!-- Cards injected by JS -->
+                    </div>
+
+                    <!-- Detailed Sections -->
+                    <div class="results-tabs" id="resultsTabs">
+                        <button class="tab active" data-tab="overview">Overview</button>
+                        <button class="tab" data-tab="meta">Meta Tags</button>
+                        <button class="tab" data-tab="schema">Schema</button>
+                        <button class="tab" data-tab="sitemap">Sitemap</button>
+                        <button class="tab" data-tab="ai">AI Visibility</button>
+                        <button class="tab" data-tab="llm">LLM Ranking</button>
+                        <button class="tab" data-tab="content">Content</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="tabContent">
+                        <!-- Overview Tab -->
+                        <div class="tab-panel active" data-panel="overview">
+                            <div class="overview-grid">
+                                <div class="overview-card">
+                                    <h3>🏷️ Meta Tags</h3>
+                                    <div class="mini-score" id="metaScore">--</div>
+                                    <p id="metaSummary">Awaiting analysis...</p>
+                                </div>
+                                <div class="overview-card">
+                                    <h3>📋 Structured Data</h3>
+                                    <div class="mini-score" id="schemaScore">--</div>
+                                    <p id="schemaSummary">Awaiting analysis...</p>
+                                </div>
+                                <div class="overview-card">
+                                    <h3>🗺️ Sitemap</h3>
+                                    <div class="mini-score" id="sitemapScore">--</div>
+                                    <p id="sitemapSummary">Awaiting analysis...</p>
+                                </div>
+                                <div class="overview-card">
+                                    <h3>🤖 AI Referenceability</h3>
+                                    <div class="mini-score" id="aiScore">--</div>
+                                    <p id="aiSummary">Awaiting analysis...</p>
+                                </div>
                             </div>
-                            <div class="form-actions">
-                                <button type="button" class="btn btn-ghost" onclick="closeModal('addBrandModal')">Cancel</button>
-                                <button type="submit" class="btn btn-gold">Create Brand</button>
+                            
+                            <div class="issues-section">
+                                <h3>🚨 Critical Issues</h3>
+                                <div class="issues-list" id="criticalIssues">
+                                    <p class="empty-state">No critical issues detected</p>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Brand Detail Modal -->
-                <div class="modal-overlay" id="brandDetailModal">
-                    <div class="modal modal-wide">
-                        <div class="modal-header">
-                            <h3 id="brandDetailTitle">Brand Detail</h3>
-                            <button class="modal-close" onclick="closeModal('brandDetailModal')">&times;</button>
+                            
+                            <div class="recommendations-section">
+                                <h3>💡 Recommendations</h3>
+                                <div class="recommendations-list" id="recommendations">
+                                    <p class="empty-state">Run an audit to see recommendations</p>
+                                </div>
+                            </div>
                         </div>
-                        <div id="brandDetailBody"></div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- PERCEPTION SCAN PAGE -->
-            <section class="page" id="page-perception">
-                <div class="page-actions">
-                    <select id="scanBrandSelect" class="select-input">
-                        <option value="">Select a brand...</option>
-                    </select>
-                    <select id="scanDepth" class="select-input">
-                        <option value="standard">Standard Scan</option>
-                        <option value="deep">Deep Scan (multi-model)</option>
-                    </select>
-                    <button class="btn btn-gold" onclick="runPerceptionScan()" id="scanBtn">Run Perception Scan</button>
-                </div>
-                <div class="panel" id="scanResultsPanel" style="display:none;">
-                    <div class="panel-header"><h3>Scan Results</h3></div>
-                    <div class="panel-body" id="scanResults"></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Scan History</h3></div>
-                    <div class="panel-body" id="scanHistory">
-                        <p class="empty-state">Select a brand and run a perception scan to see results.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- HALLUCINATIONS PAGE -->
-            <section class="page" id="page-hallucinations">
-                <div class="page-actions">
-                    <select id="halBrandSelect" class="select-input">
-                        <option value="">Select a brand...</option>
-                    </select>
-                    <button class="btn btn-outline" onclick="loadHallucinations()">Load Hallucinations</button>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Detected Hallucinations</h3></div>
-                    <div class="panel-body" id="halPanel">
-                        <p class="empty-state">Select a brand to view detected hallucinations.</p>
-                    </div>
-                </div>
-                <div class="panel" id="inertiaPanel" style="display:none;">
-                    <div class="panel-header"><h3>Inertia Report</h3></div>
-                    <div class="panel-body" id="inertiaBody"></div>
-                </div>
-            </section>
-
-            <!-- SHARE OF VOICE PAGE -->
-            <section class="page" id="page-sov">
-                <div class="page-actions">
-                    <select id="sovBrandSelect" class="select-input">
-                        <option value="">Select a brand...</option>
-                    </select>
-                    <button class="btn btn-outline" onclick="loadSoV()">Load Share of Voice</button>
-                </div>
-                <div class="stat-grid" id="sovStats" style="display:none;">
-                    <div class="stat-card">
-                        <div class="stat-label">Mention Rate</div>
-                        <div class="stat-value" id="sovMentionRate">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Velocity</div>
-                        <div class="stat-value" id="sovVelocity">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Trust Class</div>
-                        <div class="stat-value" id="sovTrustClass">--</div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Trust Class Breakdown</h3></div>
-                    <div class="panel-body" id="trustClassPanel">
-                        <p class="empty-state">Select a brand to view trust class analysis.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- BROWSER LLMS PAGE -->
-            <section class="page" id="page-browser">
-                <div class="panel">
-                    <div class="panel-header"><h3>Browser LLM Sessions</h3></div>
-                    <div class="panel-body" id="browserSessions">
-                        <p class="empty-state">Checking browser session status...</p>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Quick Query</h3></div>
-                    <div class="panel-body">
-                        <div class="form-group">
-                            <label for="browserPrompt">Prompt</label>
-                            <textarea id="browserPrompt" rows="3" placeholder="Ask a question across all commercial LLMs..."></textarea>
+                        <!-- Meta Tags Tab -->
+                        <div class="tab-panel" data-panel="meta">
+                            <h3>Meta Tags Analysis</h3>
+                            <div class="meta-comparison" id="metaComparison">
+                                <div class="meta-column">
+                                    <h4>Current</h4>
+                                    <div class="meta-item">
+                                        <label>Title</label>
+                                        <div class="meta-value" id="currentTitle">--</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>Description</label>
+                                        <div class="meta-value" id="currentDesc">--</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>OG Title</label>
+                                        <div class="meta-value" id="currentOgTitle">--</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>OG Description</label>
+                                        <div class="meta-value" id="currentOgDesc">--</div>
+                                    </div>
+                                </div>
+                                <div class="meta-column optimised">
+                                    <h4>Optimised</h4>
+                                    <div class="meta-item">
+                                        <label>Title</label>
+                                        <div class="meta-value" id="optTitle">--</div>
+                                        <button class="btn btn-small btn-gold" onclick="applyMeta('title')">Apply</button>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>Description</label>
+                                        <div class="meta-value" id="optDesc">--</div>
+                                        <button class="btn btn-small btn-gold" onclick="applyMeta('description')">Apply</button>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>OG Title</label>
+                                        <div class="meta-value" id="optOgTitle">--</div>
+                                        <button class="btn btn-small btn-gold" onclick="applyMeta('og_title')">Apply</button>
+                                    </div>
+                                    <div class="meta-item">
+                                        <label>OG Description</label>
+                                        <div class="meta-value" id="optOgDesc">--</div>
+                                        <button class="btn btn-small btn-gold" onclick="applyMeta('og_description')">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-actions">
-                            <button class="btn btn-gold" onclick="queryAllBrowser()">Query All Models</button>
+
+                        <!-- Schema Tab -->
+                        <div class="tab-panel" data-panel="schema">
+                            <h3>Structured Data / Schema Markup</h3>
+                            <div class="schema-status" id="schemaStatus">
+                                <div class="schema-item">
+                                    <span class="schema-icon" id="schemaIcon">❌</span>
+                                    <span class="schema-name">Organization Schema</span>
+                                    <span class="schema-status" id="orgStatus">Missing</span>
+                                </div>
+                                <div class="schema-item">
+                                    <span class="schema-icon" id="webmasterIcon">❌</span>
+                                    <span class="schema-name">WebSite Schema</span>
+                                    <span class="schema-status" id="webmasterStatus">Missing</span>
+                                </div>
+                                <div class="schema-item">
+                                    <span class="schema-icon" id="schemaIcon">❌</span>
+                                    <span class="schema-name">Article Schema</span>
+                                    <span class="schema-status" id="articleStatus">Missing</span>
+                                </div>
+                                <div class="schema-item">
+                                    <span class="schema-icon" id="schemaIcon">❌</span>
+                                    <span class="schema-name">FAQ Schema</span>
+                                    <span class="schema-status" id="faqStatus">Missing</span>
+                                </div>
+                            </div>
+                            <div class="schema-code" id="schemaCode" style="display:none;">
+                                <h4>Generated Schema</h4>
+                                <pre><code id="schemaJson"></code></pre>
+                                <button class="btn btn-gold" onclick="downloadSchema()">Download JSON-LD</button>
+                            </div>
                         </div>
-                        <div id="browserResults" style="margin-top: 1rem;"></div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- MATOMO ANALYTICS -->
-            <section class="page" id="page-matomo">
-                <div class="panel">
-                    <div class="panel-header"><h3>Matomo Web Analytics</h3></div>
-                    <div class="panel-body">
-                        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
-                            Live analytics dashboard from Matomo. Tracks all AMTL frontends (Ripple, Touchstone, KnowYourself, Peterman).
-                        </p>
-                        <iframe
-                            src="http://localhost:8084/index.php?module=Widgetize&action=iframe&disableLink=1&widget=1&moduleToWidgetize=Dashboard&actionToWidgetize=index&idSite=1&period=day&date=today"
-                            style="width: 100%; height: 600px; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; background: #0a0e14;"
-                            title="Matomo Dashboard"
-                        ></iframe>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Quick Links</h3></div>
-                    <div class="panel-body">
-                        <a href="http://localhost:8084" target="_blank" class="btn btn-gold" style="text-decoration:none;">Open Full Matomo Dashboard</a>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 2: SEMANTIC CORE -->
-            <section class="page" id="page-semantic">
-                <div class="page-actions">
-                    <select id="semanticBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runSemanticScan()" id="semanticBtn">Run Semantic Fingerprint</button>
-                </div>
-                <div class="stat-grid" id="semanticStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Themes</div><div class="stat-value" id="semThemes">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Drift</div><div class="stat-value" id="semDrift">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Tone</div><div class="stat-value" id="semTone">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Semantic Fingerprint</h3></div>
-                    <div class="panel-body" id="semanticPanel"><p class="empty-state">Select a brand and run a semantic scan to generate its identity fingerprint.</p></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Drift History</h3></div>
-                    <div class="panel-body" id="driftPanel"><p class="empty-state">Run multiple scans to detect semantic drift over time.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 3: NEURAL VECTOR MAP -->
-            <section class="page" id="page-vectormap">
-                <div class="page-actions">
-                    <select id="vectorBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runVectorMap()" id="vectorBtn">Generate Vector Map</button>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Competitive Vector Space</h3></div>
-                    <div class="panel-body" id="vectorPanel"><p class="empty-state">Select a brand to map its position in the neural vector space relative to competitors.</p></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Trajectory</h3></div>
-                    <div class="panel-body" id="trajectoryPanel"><p class="empty-state">Run multiple maps to see brand trajectory over time.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 4: AUTHORITY ENGINE -->
-            <section class="page" id="page-authority">
-                <div class="page-actions">
-                    <select id="authBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runAuthorityScan()" id="authBtn">Run Authority Scan</button>
-                </div>
-                <div class="stat-grid" id="authStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Authority Score</div><div class="stat-value" id="authScore">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Top 3</div><div class="stat-value" id="authTop3">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Top 10</div><div class="stat-value" id="authTop10">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Gaps</div><div class="stat-value" id="authGaps">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>SERP Authority Results</h3></div>
-                    <div class="panel-body" id="authPanel"><p class="empty-state">Select a brand and run an authority scan to check SERP rankings.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 5: SURVIVABILITY LAB -->
-            <section class="page" id="page-survivability">
-                <div class="page-actions">
-                    <select id="survBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runSurvivabilityTest()" id="survBtn">Run Survivability Test</button>
-                </div>
-                <div class="stat-grid" id="survStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Survivability Score</div><div class="stat-value" id="survScore">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Preserved</div><div class="stat-value" id="survPreserved">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Distorted</div><div class="stat-value" id="survDistorted">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Content Survivability Results</h3></div>
-                    <div class="panel-body" id="survPanel"><p class="empty-state">Select a brand and test how well LLMs preserve its key content.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 6: MACHINE INTERFACE -->
-            <section class="page" id="page-machine">
-                <div class="page-actions">
-                    <select id="techBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runTechnicalAudit()" id="techBtn">Run Technical Audit</button>
-                </div>
-                <div class="stat-grid" id="techStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Technical Score</div><div class="stat-value" id="techScore">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Issues</div><div class="stat-value" id="techIssues">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Technical SEO Checklist</h3></div>
-                    <div class="panel-body" id="techChecklist"><p class="empty-state">Select a brand and audit its domain for JSON-LD, OpenGraph, sitemap, and robots.txt.</p></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Audit Issues</h3></div>
-                    <div class="panel-body" id="techIssuesPanel"><p class="empty-state">Run an audit to see detected issues.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 7: AMPLIFIER -->
-            <section class="page" id="page-amplifier">
-                <div class="page-actions">
-                    <select id="ampBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runAmplifierScan()" id="ampBtn">Run Citation Analysis</button>
-                </div>
-                <div class="stat-grid" id="ampStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Citation Score</div><div class="stat-value" id="ampScore">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Cited</div><div class="stat-value" id="ampCited">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Queries</div><div class="stat-value" id="ampQueries">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Citation Results</h3></div>
-                    <div class="panel-body" id="ampPanel"><p class="empty-state">Select a brand to analyse its citation probability across LLMs.</p></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Competitor Shadow</h3></div>
-                    <div class="panel-body" id="shadowPanel"><p class="empty-state">Who appears instead of you? Run a scan to find out.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 8: THE PROOF -->
-            <section class="page" id="page-proof">
-                <div class="page-actions">
-                    <select id="proofBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="fetchVisitors()" id="proofBtn">Fetch Visitors</button>
-                </div>
-                <div class="stat-grid" id="proofStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value" id="proofTotal">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Hot</div><div class="stat-value" id="proofHot">--</div><div class="stat-sub" style="color:var(--error);">High intent</div></div>
-                    <div class="stat-card"><div class="stat-label">Warm</div><div class="stat-value" id="proofWarm">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Cool</div><div class="stat-value" id="proofCool">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Visitor Leads</h3></div>
-                    <div class="panel-body" id="proofPanel"><p class="empty-state">Select a brand and fetch website visitors from Snitcher to identify leads.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 9: THE ORACLE -->
-            <section class="page" id="page-oracle">
-                <div class="page-actions">
-                    <select id="oracleBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runOracleScan()" id="oracleBtn">Scan for Trends</button>
-                </div>
-                <div class="stat-grid" id="oracleStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Outlook</div><div class="stat-value" id="oracleOutlook">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Signals</div><div class="stat-value" id="oracleSignals">--</div></div>
-                    <div class="stat-card"><div class="stat-label">High Urgency</div><div class="stat-value" id="oracleUrgent">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Trend Signals</h3></div>
-                    <div class="panel-body" id="oraclePanel"><p class="empty-state">Select a brand to scan for industry trends, opportunities and threats.</p></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Forecast</h3></div>
-                    <div class="panel-body" id="forecastPanel"><p class="empty-state">Run oracle scans to build a predictive forecast.</p></div>
-                </div>
-            </section>
-
-            <!-- CHAMBER 10: THE FORGE -->
-            <section class="page" id="page-forge">
-                <div class="page-actions">
-                    <select id="forgeBrandSelect" class="select-input"><option value="">Select a brand...</option></select>
-                    <button class="btn btn-gold" onclick="runForge()" id="forgeBtn">Generate Briefs</button>
-                </div>
-                <div class="stat-grid" id="forgeStats" style="display:none;">
-                    <div class="stat-card"><div class="stat-label">Total Briefs</div><div class="stat-value" id="forgeTotal">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Corrections</div><div class="stat-value" id="forgeCorrections">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Authority</div><div class="stat-value" id="forgeAuthority">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Published</div><div class="stat-value" id="forgePublished">--</div></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>Content Pipeline</h3></div>
-                    <div class="panel-body" id="forgePanel"><p class="empty-state">Select a brand to generate content briefs from perception and authority gaps.</p></div>
-                </div>
-            </section>
-
-            <!-- SEO ASK PAGE -->
-            <section class="page" id="page-seoask">
-                <div class="panel">
-                    <div class="panel-header"><h3>Ask Peterman</h3></div>
-                    <div class="panel-body">
-                        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-                            Type what you want — keyword research, content analysis, meta tags, SEO scoring. Peterman analyses via SearXNG + AI and returns actionable output.
-                        </p>
-                        <div class="form-group">
-                            <label for="seoQuery">What do you need?</label>
-                            <textarea id="seoQuery" rows="3" placeholder="e.g. Analyse keywords for AI consulting Sydney, or Generate meta tags for our governance page, or Score this content topic: responsible AI frameworks"></textarea>
+                        <!-- Sitemap Tab -->
+                        <div class="tab-panel" data-panel="sitemap">
+                            <h3>Sitemap Status</h3>
+                            <div class="sitemap-grid" id="sitemapGrid">
+                                <div class="sitemap-item">
+                                    <label>XML Sitemap</label>
+                                    <span class="sitemap-status" id="sitemapStatus">Not Found</span>
+                                </div>
+                                <div class="sitemap-item">
+                                    <label>Robots.txt</label>
+                                    <span class="sitemap-status" id="robotsStatus">Not Found</span>
+                                </div>
+                                <div class="sitemap-item">
+                                    <label>Pages Discovered</label>
+                                    <span class="sitemap-value" id="pagesDiscovered">0</span>
+                                </div>
+                                <div class="sitemap-item">
+                                    <label>Last Modified</label>
+                                    <span class="sitemap-value" id="lastModified">--</span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <select id="seoBrandSelect" class="select-input" style="max-width:200px;">
-                                <option value="">No brand context</option>
-                            </select>
-                            <button class="btn btn-gold" onclick="runSeoAsk()" id="seoAskBtn">Ask Peterman</button>
+
+                        <!-- AI Visibility Tab -->
+                        <div class="tab-panel" data-panel="ai">
+                            <h3>AI Referenceability Score</h3>
+                            <p class="tab-description">How well is this brand remembered and cited by AI models?</p>
+                            
+                            <div class="ai-scores" id="aiScores">
+                                <div class="ai-model-card">
+                                    <div class="model-name">Claude</div>
+                                    <div class="model-score" id="claudeScore">--</div>
+                                    <div class="model-bar"><div class="bar-fill" id="claudeBar"></div></div>
+                                </div>
+                                <div class="ai-model-card">
+                                    <div class="model-name">ChatGPT</div>
+                                    <div class="model-score" id="chatgptScore">--</div>
+                                    <div class="model-bar"><div class="bar-fill" id="chatgptBar"></div></div>
+                                </div>
+                                <div class="ai-model-card">
+                                    <div class="model-name">Gemini</div>
+                                    <div class="model-score" id="geminiScore">--</div>
+                                    <div class="model-bar"><div class="bar-fill" id="geminiBar"></div></div>
+                                </div>
+                                <div class="ai-model-card">
+                                    <div class="model-name">Perplexity</div>
+                                    <div class="model-score" id="perplexityScore">--</div>
+                                    <div class="model-bar"><div class="bar-fill" id="perplexityBar"></div></div>
+                                </div>
+                            </div>
+
+                            <div class="ai-tips" id="aiTips">
+                                <h4>How to Improve AI Visibility</h4>
+                                <ul id="aiTipsList">
+                                    <li>Run a perception scan to see how AI models describe your brand</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- LLM Ranking Tab -->
+                        <div class="tab-panel" data-panel="llm">
+                            <h3>LLM Ranking Optimisation</h3>
+                            <p class="tab-description">Appear in AI-generated answers when users search relevant keywords.</p>
+                            
+                            <div class="llm-rankings" id="llmRankings">
+                                <div class="ranking-item">
+                                    <div class="ranking-keyword" id="keyword1">Enter a domain to see keywords</div>
+                                    <div class="ranking-score">
+                                        <span class="ranking-position" id="pos1">--</span>
+                                        <div class="ranking-bar"><div class="bar-fill" id="bar1"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="optimization-tips" id="optTips">
+                                <h4>Optimisation Suggestions</h4>
+                                <ul id="optTipsList">
+                                    <li>Your content will be analysed for LLM-friendly formatting</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Content Tab -->
+                        <div class="tab-panel" data-panel="content">
+                            <h3>Content Generation</h3>
+                            <p class="tab-description">AI-generated content to improve SEO and AI visibility.</p>
+                            
+                            <div class="content-actions">
+                                <button class="btn btn-gold" onclick="generateBlogPost()" id="genBlogBtn">
+                                    ✍️ Generate Blog Post
+                                </button>
+                                <button class="btn btn-outline" onclick="generateFAQ()" id="genFaqBtn">
+                                    ❓ Generate FAQ
+                                </button>
+                                <button class="btn btn-outline" onclick="optimizeContent()" id="optContentBtn">
+                                    ⚡ Optimise Existing
+                                </button>
+                            </div>
+
+                            <div class="generated-content" id="generatedContent" style="display:none;">
+                                <h4>Generated Content</h4>
+                                <div class="content-preview" id="contentPreview"></div>
+                                <div class="content-actions">
+                                    <button class="btn btn-gold" onclick="copyContent()">Copy to Clipboard</button>
+                                    <button class="btn btn-outline" onclick="downloadContent()">Download</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="panel" id="seoResultPanel" style="display:none;">
-                    <div class="panel-header"><h3>SEO Analysis</h3></div>
-                    <div class="panel-body" id="seoResultBody"></div>
-                </div>
-                <div class="panel" id="seoSerpPanel" style="display:none;">
-                    <div class="panel-header"><h3>SERP Landscape</h3></div>
-                    <div class="panel-body" id="seoSerpBody"></div>
+
+                    <!-- Actions -->
+                    <div class="results-actions">
+                        <button class="btn btn-outline" onclick="runNewAudit()">🔄 New Audit</button>
+                        <button class="btn btn-gold" onclick="downloadReport()">📄 Download Report</button>
+                    </div>
                 </div>
             </section>
+        </main>
 
-        </div>
-    </main>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
 
     <script src="/static/app.js"></script>
-    <!-- Matomo Analytics -->
-    <script>
-      var _paq = window._paq = window._paq || [];
-      _paq.push(['trackPageView']);
-      _paq.push(['enableLinkTracking']);
-      (function() {
-        var u="//localhost:8084/";
-        _paq.push(['setTrackerUrl', u+'matomo.php']);
-        _paq.push(['setSiteId', '1']);
-        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
-      })();
-    </script>
 </body>
 </html>
