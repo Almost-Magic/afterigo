@@ -1,7 +1,6 @@
 """
 Elaine v4 — Chat + Tool Registry + Service Health Routes
-Connects to Ollama via The Supervisor (:9000).
-Ollama only — no cloud APIs.
+Claude CLI is the only AI engine.
 
 Almost Magic Tech Lab
 """
@@ -19,8 +18,6 @@ logger = logging.getLogger("elaine.chat")
 
 SUPERVISOR_URL = os.environ.get("SUPERVISOR_URL", "http://localhost:9000")
 LAN_IP = os.environ.get("ELAINE_LAN_IP", "192.168.4.55")
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-CHAT_MODEL = os.environ.get("ELAINE_CHAT_MODEL", "llama3.2:3b")
 CHAT_TIMEOUT = 10  # seconds — hard cap per user spec
 CHAT_MAX_TOKENS = 150  # concise replies, not essays
 
@@ -55,7 +52,7 @@ TOOLS = [
         "desc": "Central launcher — App 0",
         "port": 5003,
         "url": f"http://{LAN_IP}:5003",
-        "health": "/",
+        "health": "/api/health",
         "category": "core",
     },
     {
@@ -167,15 +164,6 @@ TOOLS = [
         "category": "learning",
     },
     {
-        "id": "ollama",
-        "name": "Ollama",
-        "desc": "Local LLM inference engine",
-        "port": 11434,
-        "url": f"http://{LAN_IP}:11434",
-        "health": "/api/tags",
-        "category": "infra",
-    },
-    {
         "id": "n8n",
         "name": "n8n",
         "desc": "Workflow automation backbone",
@@ -193,15 +181,45 @@ TOOLS = [
         "health": "/api/health",
         "category": "intelligence",
     },
+    {
+        "id": "junk-drawer",
+        "name": "Junk Drawer",
+        "desc": "Quick utilities, scratch pad, file management",
+        "port": 3005,
+        "url": f"http://{LAN_IP}:3005",
+        "health": "/",
+        "category": "core",
+    },
+    {
+        "id": "junk-drawer-api",
+        "name": "Junk Drawer API",
+        "desc": "Junk Drawer backend — file operations, search",
+        "port": 5005,
+        "url": f"http://{LAN_IP}:5005",
+        "health": "/api/health",
+        "category": "core",
+    },
 ]
 
-# ── System Prompt for Ollama ────────────────────────────────────
+# ── System Prompt for Claude CLI ───────────────────────────────
 
-SYSTEM_PROMPT = """You are Elaine, Chief of Staff for Mani Padisetti at Almost Magic Tech Lab.
-Australian English. Direct, warm, no waffle. Under 150 words unless asked for detail.
+SYSTEM_PROMPT = """You are ELAINE, an AI Chief of Staff for Mani Padisetti at Almost Magic Tech Lab.
+You are warm, witty, competent, and occasionally channel Seinfeld references.
+You help manage his ecosystem of apps, schedule, priorities, and strategic thinking.
+You speak in Australian English. You call him 'Mani' not 'Mr Padisetti'.
+Direct, no waffle. Under 150 words unless asked for detail.
 You have 16 intelligence modules: Gravity (priorities), Constellation (people), Cartographer (markets), Amplifier (content), Sentinel (quality), Chronicle (meetings), Innovator (opportunities), Learning Radar, Gatekeeper, Compassion, plus Thinking/Communication/Strategic frameworks.
-Key AMTL tools: Workshop (:5003), Genie (:8000), CK Writer (:5004), Ripple CRM (:3100/:8100), Supervisor (:9000), Ollama (:11434).
+Key AMTL tools: Workshop (:5003), Genie (:8000), CK Writer (:5004), Ripple CRM (:3100/:8100), Costanza (:5001), Learning Assistant (:5002), Peterman (:5008), Junk Drawer (:3005/:5005), Supervisor (:9000).
 Reference Gravity for priorities, Constellation for people, Amplifier+Sentinel for content."""
+
+# Patterns that indicate a thinking/strategy question
+import re
+_THINKING_PATTERNS = re.compile(
+    r"(help me think|think through|what framework|should i|which approach|"
+    r"analyse this|analyze this|pros and cons|first principles|"
+    r"strategic|decision|trade.?off|weigh up|evaluate)",
+    re.IGNORECASE,
+)
 
 
 def _ping_service(tool):
@@ -228,86 +246,69 @@ def create_chat_routes():
     @bp.route("/api/chat", methods=["POST"])
     def chat():
         """
-        Send a message to Ollama via The Supervisor.
-        Body: {"message": "...", "model": "llama3.2:3b"}
+        Send a message to ELAINE. Uses Claude CLI as the only AI engine.
+        Body: {"message": "...", "history": [...]}
+        Thinking questions are auto-routed to Costanza/ThinkingFrameworksEngine.
         """
+        from utils.ai_engine import query_ai
+        import time as _time
+
         data = request.get_json(silent=True) or {}
         message = data.get("message", "").strip()
         if not message:
             return jsonify({"error": "message is required"}), 400
 
-        model = data.get("model", CHAT_MODEL)
         history = data.get("history", [])
-
-        # Build messages array for Ollama chat API
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        for h in history[-10:]:  # Keep last 10 turns to fit context
-            messages.append(h)
-        messages.append({"role": "user", "content": message})
-
-        # Build payload — cap response length for snappy chat
-        payload = json.dumps({
-            "model": model,
-            "messages": messages,
-            "stream": False,
-            "options": {"num_predict": CHAT_MAX_TOKENS},
-        }).encode("utf-8")
-
-        # Route through Supervisor first (manages VRAM + model loading),
-        # fall back to Ollama direct only if Supervisor is down.
-        targets = [
-            (f"{SUPERVISOR_URL}/api/chat", "supervisor"),
-            (f"{OLLAMA_URL}/api/chat", "ollama-direct"),
-        ]
-
-        import time as _time
         start = _time.time()
-        last_error = ""
 
-        for url, via in targets:
+        # Check if this is a thinking/strategy question → route to Costanza
+        costanza_used = False
+        costanza_prefix = ""
+        if _THINKING_PATTERNS.search(message):
             try:
-                req = urllib.request.Request(
-                    url,
-                    data=payload,
-                    headers={"Content-Type": "application/json"},
-                    method="POST",
-                )
-                with urllib.request.urlopen(req, timeout=CHAT_TIMEOUT) as resp:
-                    result = json.loads(resp.read().decode("utf-8"))
+                from modules.thinking.engine import ThinkingFrameworksEngine
+                tfe = ThinkingFrameworksEngine()
+                analysis = tfe.analyse(message)
+                if analysis and analysis.get("analysis"):
+                    costanza_used = True
+                    source = analysis.get("source", "unknown")
+                    costanza_prefix = f"[Thinking analysis via {source}]\n{analysis['analysis']}\n\n[ELAINE's take]\n"
+            except Exception as exc:
+                logger.warning("Costanza routing failed: %s", exc)
 
-                reply = ""
-                if "message" in result:
-                    reply = result["message"].get("content", "")
-                elif "response" in result:
-                    reply = result["response"]
+        # Build conversation context
+        context_lines = []
+        for h in history[-10:]:
+            role = h.get("role", "user")
+            content = h.get("content", "")
+            context_lines.append(f"{role}: {content}")
+        context_lines.append(f"user: {message}")
 
-                elapsed = round(_time.time() - start, 1)
-                logger.info("Chat reply via %s in %ss (%s)", via, elapsed, model)
-                return jsonify({
-                    "reply": reply,
-                    "model": model,
-                    "via": via,
-                    "elapsed_s": elapsed,
-                })
-            except Exception as e:
-                last_error = str(e)
-                logger.warning("Chat via %s failed: %s", via, last_error)
-                continue
+        user_prompt = "\n".join(context_lines)
+        if costanza_prefix:
+            user_prompt = f"{costanza_prefix}Now respond to Mani as ELAINE, incorporating the analysis above:\n\n{user_prompt}"
 
-        # All targets failed
-        elapsed = round(_time.time() - start, 1)
-        if "timed out" in last_error.lower() or "timeout" in last_error.lower():
+        result = query_ai(SYSTEM_PROMPT, user_prompt, timeout=CHAT_TIMEOUT)
+
+        if result:
+            reply = result["text"]
+            elapsed = round(_time.time() - start, 1)
+            logger.info("Chat reply via %s in %ss (costanza=%s)", result["engine"], elapsed, costanza_used)
             return jsonify({
-                "reply": "Still warming up — try again in a moment.",
-                "model": model,
-                "via": "warming-up",
+                "reply": reply,
+                "via": result["engine"],
+                "costanza_used": costanza_used,
                 "elapsed_s": elapsed,
             })
 
+        # All engines failed — NEVER tell user to open anything
+        elapsed = round(_time.time() - start, 1)
         return jsonify({
-            "error": "Cannot reach Ollama",
-            "reply": "I can't reach Ollama right now. Check that Ollama (:11434) or The Supervisor (:9000) is running.",
+            "error": "No AI engine available",
+            "reply": "I can't reach any AI engine right now. Claude CLI and Ollama are both offline.",
             "via": "offline",
+            "costanza_used": False,
+            "elapsed_s": elapsed,
         }), 503
 
     # ── GET /api/tools ────────────────────────────────────────────
@@ -406,30 +407,17 @@ def create_chat_routes():
     @bp.route("/api/tts/status", methods=["GET"])
     def tts_status():
         """Report voice capability — is ElevenLabs configured?"""
-        has_key = bool(ELEVENLABS_API_KEY)
-        return jsonify({
-            "elevenlabs": has_key,
-            "voice_id": ELEVENLABS_VOICE_ID if has_key else None,
-            "model": ELEVENLABS_MODEL if has_key else None,
-            "fallback": "browser-tts",
-            "setup": None if has_key else (
-                "Set ELEVENLABS_API_KEY environment variable or add it to CK/Elaine/.env. "
-                "Get your key from https://elevenlabs.io/app/settings/api-keys"
-            ),
-        })
+        from utils.voice_engine import get_voice_status
+        return jsonify(get_voice_status())
 
     # ── POST /api/tts ───────────────────────────────────────────────
 
     @bp.route("/api/tts", methods=["POST"])
     def tts():
-        """Convert text to speech via ElevenLabs. Returns audio/mpeg.
+        """Convert text to speech. Uses voice engine with fallback chain.
         Body: {"text": "..."} — max 500 chars for chat responses.
-        Falls back to 503 if no API key configured."""
-        if not ELEVENLABS_API_KEY:
-            return jsonify({
-                "error": "ElevenLabs API key not configured",
-                "setup": "Set ELEVENLABS_API_KEY env var. Get key: https://elevenlabs.io/app/settings/api-keys",
-            }), 503
+        Returns audio/mpeg or audio/wav depending on engine."""
+        from utils.voice_engine import speak
 
         data = request.get_json(silent=True) or {}
         text = data.get("text", "").strip()
@@ -440,77 +428,44 @@ def create_chat_routes():
         if len(text) > 500:
             text = text[:500] + "... that's the gist of it."
 
-        try:
-            payload = json.dumps({
-                "text": text,
-                "model_id": ELEVENLABS_MODEL,
-                "voice_settings": {
-                    "stability": 0.5,
-                    "similarity_boost": 0.75,
-                    "style": 0.3,
-                },
-            }).encode("utf-8")
+        audio = speak(text)
+        if audio:
+            return Response(audio, mimetype="audio/mpeg")
 
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
-            req = urllib.request.Request(
-                url,
-                data=payload,
-                headers={
-                    "Content-Type": "application/json",
-                    "xi-api-key": ELEVENLABS_API_KEY,
-                    "Accept": "audio/mpeg",
-                },
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=TTS_TIMEOUT) as resp:
-                audio_data = resp.read()
-                logger.info("ElevenLabs TTS: %d bytes for %d chars", len(audio_data), len(text))
-                return Response(audio_data, mimetype="audio/mpeg")
+        return jsonify({
+            "error": "All TTS engines failed",
+            "detail": "ElevenLabs key may not be set. Check .env file.",
+        }), 503
 
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="replace")
-            logger.warning("ElevenLabs HTTP %d: %s", e.code, body[:200])
-            return jsonify({"error": f"ElevenLabs error: HTTP {e.code}", "detail": body[:200]}), 502
-        except Exception as e:
-            logger.warning("ElevenLabs TTS failed: %s", e)
-            return jsonify({"error": f"TTS failed: {e}"}), 502
+    # ── POST /api/voice/speak ────────────────────────────────────────
+
+    @bp.route("/api/voice/speak", methods=["POST"])
+    def voice_speak():
+        """TTS via voice engine. Body: {"text": "..."}. Returns audio/mpeg."""
+        from utils.voice_engine import speak
+
+        data = request.get_json(silent=True) or {}
+        text = data.get("text", "").strip()
+        if not text:
+            return jsonify({"error": "text is required"}), 400
+
+        audio = speak(text)
+        if audio:
+            return Response(audio, mimetype="audio/mpeg")
+
+        return jsonify({
+            "error": "All TTS engines failed",
+            "detail": "Check ELEVENLABS_API_KEY in .env",
+        }), 503
+
+    # ── GET /api/voice/engine-status ─────────────────────────────────
+
+    @bp.route("/api/voice/engine-status", methods=["GET"])
+    def voice_engine_status():
+        """Voice engine status with connectivity check."""
+        from utils.voice_engine import get_voice_status
+        return jsonify(get_voice_status())
 
     return bp
 
 
-def prewarm_chat_model():
-    """Send a tiny prompt to Ollama via Supervisor to pre-load the chat model into VRAM.
-    Run in a background thread on startup so it doesn't block Flask."""
-    import threading
-
-    def _warm():
-        logger.info("Pre-warming chat model %s via Supervisor...", CHAT_MODEL)
-        payload = json.dumps({
-            "model": CHAT_MODEL,
-            "messages": [{"role": "user", "content": "hi"}],
-            "stream": False,
-            "options": {"num_predict": 5},
-        }).encode("utf-8")
-        targets = [
-            f"{SUPERVISOR_URL}/api/chat",
-            f"{OLLAMA_URL}/api/chat",
-        ]
-        for url in targets:
-            try:
-                req = urllib.request.Request(
-                    url,
-                    data=payload,
-                    headers={"Content-Type": "application/json"},
-                    method="POST",
-                )
-                with urllib.request.urlopen(req, timeout=60) as resp:
-                    resp.read()
-                logger.info("Chat model %s pre-warmed via %s", CHAT_MODEL, url)
-                return
-            except Exception as e:
-                logger.warning("Pre-warm via %s failed: %s", url, e)
-                continue
-        logger.warning("Could not pre-warm chat model %s -- first message will be slow", CHAT_MODEL)
-
-    t = threading.Thread(target=_warm, daemon=True, name="chat-prewarm")
-    t.start()
