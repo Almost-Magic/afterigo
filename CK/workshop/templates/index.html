@@ -452,6 +452,45 @@
             border-color: rgba(201, 168, 76, 0.3);
             box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.08);
         }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 40px;
+            height: 22px;
+            background: var(--navy-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 11px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--gold);
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .theme-toggle.light::after { transform: translateX(18px); }
+
+        /* Light theme */
+        body.light {
+            --navy: #f5f3ee;
+            --navy-mid: #e8e5de;
+            --navy-light: #ffffff;
+            --navy-surface: #f0ede6;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4b5563;
+            --text-dim: #9ca3af;
+        }
+        body.light .app-card { border-color: rgba(0, 0, 0, 0.08); }
+        body.light .app-card:hover { border-color: rgba(201, 168, 76, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+        body.light .header { border-bottom-color: rgba(201, 168, 76, 0.2); }
     </style>
 </head>
 <body>
@@ -467,6 +506,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:1rem;">
                 <input type="text" class="search-bar" placeholder="Search apps… (Ctrl+K)" id="searchBar">
+                <div class="theme-toggle" id="themeToggle" title="Toggle light/dark theme" onclick="toggleTheme()"></div>
                 <div class="header-status">
                     <div class="status-dot"></div>
                     <span id="statusText">All systems operational</span>
@@ -490,7 +530,7 @@
         <!-- CK Apps — Internal -->
         <div class="section" id="section-ck">
             <div class="section-header">
-                <h2>🎩 CK Apps</h2>
+                <h2>CK Apps</h2>
                 <div class="section-line"></div>
                 <span class="section-count">Internal Products</span>
             </div>
@@ -500,7 +540,7 @@
         <!-- Infrastructure -->
         <div class="section" id="section-infra">
             <div class="section-header">
-                <h2>⚙️ Infrastructure</h2>
+                <h2>Infrastructure</h2>
                 <div class="section-line"></div>
                 <span class="section-count">Services & Databases</span>
             </div>
@@ -510,7 +550,7 @@
         <!-- Open Source Tools (Docker/WSL2) -->
         <div class="section" id="section-oss">
             <div class="section-header">
-                <h2>🐳 Open Source Tools</h2>
+                <h2>Open Source Tools</h2>
                 <div class="section-line"></div>
                 <span class="section-count">Docker Containers — WSL2</span>
             </div>
@@ -520,7 +560,7 @@
         <!-- External Services -->
         <div class="section" id="section-external">
             <div class="section-header">
-                <h2>🌐 External Services</h2>
+                <h2>External Services</h2>
                 <div class="section-line"></div>
                 <span class="section-count">Paid APIs & SaaS</span>
             </div>
@@ -648,8 +688,8 @@
                     id: 'author-studio',
                     name: 'Author Studio',
                     desc: 'Book DNA + Amazon Listings + ARIA',
-                    url: 'http://localhost:5006',
-                    port: '5006',
+                    url: 'http://localhost:5007',
+                    port: '5007',
                     status: 'live',
                     accent: '#e879f9',
                     favicon: { type: 'text', bg: '#3d1545', fg: '#e879f9', letter: 'A', font: 'serif' }
@@ -782,11 +822,11 @@
                     id: 'dhamma',
                     name: 'Dhamma Mirror',
                     desc: 'Vipassana Companion',
-                    url: null,
-                    port: '5020',
+                    url: 'http://localhost:8080',
+                    port: '8080',
                     status: 'building',
                     accent: '#fbbf24',
-                    favicon: { type: 'symbol', bg: '#3d2f0a', fg: '#fbbf24', symbol: '☸' }
+                    favicon: { type: 'text', bg: '#3d2f0a', fg: '#fbbf24', letter: 'D', font: 'serif' }
                 },
                 {
                     id: 'genie',
@@ -797,6 +837,26 @@
                     status: 'live',
                     accent: '#c9944a',
                     favicon: { type: 'text', bg: '#3d2f0a', fg: '#c9944a', letter: 'G', font: 'serif' }
+                },
+                {
+                    id: 'processlens',
+                    name: 'ProcessLens',
+                    desc: 'Process Mining & Analysis',
+                    url: 'http://localhost:5016',
+                    port: '5016',
+                    status: 'live',
+                    accent: '#14b8a6',
+                    favicon: { type: 'text', bg: '#0a2d2d', fg: '#14b8a6', letter: 'P', font: 'sans-serif' }
+                },
+                {
+                    id: 'the-ledger',
+                    name: 'The Ledger',
+                    desc: 'Financial Ledger & Tracking',
+                    url: 'http://localhost:5020',
+                    port: '5020',
+                    status: 'live',
+                    accent: '#22d3ee',
+                    favicon: { type: 'text', bg: '#0a2d3d', fg: '#22d3ee', letter: 'L', font: 'serif' }
                 },
                 {
                     id: 'junk-drawer',
@@ -1052,21 +1112,21 @@
                     id: 'listmonk',
                     name: 'Listmonk',
                     desc: 'Email & Newsletter',
+                    url: 'http://localhost:9001',
+                    port: '9001',
+                    status: 'live',
+                    accent: '#7c3aed',
+                    favicon: { type: 'text', bg: '#1e0a3d', fg: '#7c3aed', letter: 'L', font: 'sans-serif' }
+                },
+                {
+                    id: 'supervisor',
+                    name: 'The Supervisor',
+                    desc: 'Service Orchestration & Monitoring',
                     url: 'http://localhost:9000',
                     port: '9000',
                     status: 'live',
-                    accent: '#7c3aed',
-                    favicon: { type: 'symbol', bg: '#1e0a3d', fg: '#7c3aed', symbol: '✉' }
-                },
-                {
-                    id: 'proof',
-                    name: 'Proof',
-                    desc: 'Deploy → Test → Fix Pipeline',
-                    url: 'http://localhost:8000',
-                    port: '8000',
-                    status: 'live',
                     accent: '#fbbf24',
-                    favicon: { type: 'text', bg: '#3d2f0a', fg: '#fbbf24', letter: '✓', font: 'sans-serif' }
+                    favicon: { type: 'text', bg: '#3d2f0a', fg: '#fbbf24', letter: 'S', font: 'sans-serif' }
                 },
                 {
                     id: 'vps',
@@ -1533,6 +1593,22 @@
                 a.click();
                 URL.revokeObjectURL(url);
             });
+        }
+
+        // ================================================================
+        // THEME TOGGLE
+        // ================================================================
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.getElementById('themeToggle');
+            body.classList.toggle('light');
+            toggle.classList.toggle('light');
+            localStorage.setItem('workshop-theme', body.classList.contains('light') ? 'light' : 'dark');
+        }
+        // Restore saved theme
+        if (localStorage.getItem('workshop-theme') === 'light') {
+            document.body.classList.add('light');
+            document.getElementById('themeToggle').classList.add('light');
         }
 
         // ================================================================
