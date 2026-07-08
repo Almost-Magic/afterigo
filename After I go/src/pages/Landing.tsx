@@ -22,8 +22,8 @@ export default function Landing() {
         <p className="text-xl opacity-85 mb-3 font-light">Your Digital Legacy, Protected</p>
         
         <p className="text-base opacity-60 mb-12 max-w-xl mx-auto leading-relaxed">
-          A private vault that helps the right people find what they need after you're gone.{' '}
-          Organise messages, wishes, finances, and digital accounts — all in your browser.
+          A private planning vault that helps the right people find what they need after you're gone.{' '}
+          Organise messages, wishes, finances, and digital accounts in your browser.
         </p>
         
         <button
@@ -31,10 +31,13 @@ export default function Landing() {
           className="px-10 py-4 text-lg bg-sage-500 text-white rounded-full font-medium 
                      tracking-wide hover:bg-sage-400 hover:scale-105 transition-all duration-200 mb-4"
         >
-          Start Organising — Free Forever
+          Start Organising
         </button>
         
         <p className="text-sm opacity-50">No account needed. Works in your browser. Free forever.</p>
+        <p className="mt-3 text-xs opacity-55 max-w-xl mx-auto leading-relaxed">
+          Planning support only. This is not legal, financial, medical, crisis, or emergency advice.
+        </p>
         
         <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {features.map((feature) => (
